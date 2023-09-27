@@ -338,10 +338,10 @@ namespace DTXMania
 		}
 
 
-		// Other
+        // Other
 
-		#region [ private ]
-		//-----------------
+        #region [ private ]
+        //-----------------
         private CTexture txLane;
         public bool bサビ区間;
         public double UnitTime;

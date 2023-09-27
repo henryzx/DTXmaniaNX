@@ -170,8 +170,6 @@ namespace FDK
 		}
 		public void tPolling(bool bWindowがアクティブ中, bool bバッファ入力を使用する)  // tポーリング
 		{
-			lock (this.objMidiIn排他用)
-			{
 				//				foreach( IInputDevice device in this.list入力デバイス )
 				for (int i = this.listInputDevices.Count - 1; i >= 0; i--)    // #24016 2011.1.6 yyagi: change not to use "foreach" to avoid InvalidOperation exception by Remove().
 				{
@@ -195,7 +193,6 @@ namespace FDK
 						}
 					}
 				}
-			}
 		}
 
 		#region [ IDisposable＋α ]
@@ -225,10 +222,7 @@ namespace FDK
 					{
 						device2.Dispose();
 					}
-					lock (this.objMidiIn排他用)
-					{
-						this.listInputDevices.Clear();
-					}
+					this.listInputDevices.Clear();
 
 					this.directInput.Dispose();
 
@@ -259,7 +253,6 @@ namespace FDK
 		private IInputDevice _Mouse;
 		private bool bDisposed済み;
 		private List<uint> listHMIDIIN = new List<uint>(8);
-		private object objMidiIn排他用 = new object();
 		private CWin32.MidiInProc proc;
 		//		private CTimer timer;
 
@@ -271,8 +264,6 @@ namespace FDK
 
 			long time = CSoundManager.rcPerformanceTimer.nシステム時刻;  // lock前に取得。演奏用タイマと同じタイマを使うことで、BGMと譜面、入力ずれを防ぐ。
 
-			lock (this.objMidiIn排他用)
-			{
 				if ((this.listInputDevices != null) && (this.listInputDevices.Count != 0))
 				{
 					foreach (IInputDevice device in this.listInputDevices)
@@ -285,9 +276,34 @@ namespace FDK
 						}
 					}
 				}
+		}
+        //-----------------
+        #endregion
+
+        #region [ performance tracker ]
+
+        private static CTimer inputLagTimer = new CTimer(CTimer.EType.MultiMedia);
+        private static long inputTime = 0L;
+		private static long inputLag = 0L;
+		public static long currentInputLag
+		{
+			get
+			{
+				return inputLag;
 			}
 		}
-		//-----------------
-		#endregion
-	}
+
+
+		public static void trackInputTime()
+		{
+			inputTime = inputLagTimer.nCurrentTime;
+		}
+
+		public static void trackSoundPlayTime()
+		{
+			inputLag = inputLagTimer.nCurrentTime - inputTime;
+		}
+
+        #endregion
+    }
 }

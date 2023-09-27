@@ -87,6 +87,14 @@ namespace DTXMania
             get;
             private set;
         }
+
+        // Update Per Second
+        public static CFPS UPS
+        {
+            get;
+            private set;
+        }
+
         public static CInputManager InputManager
         {
             get;
@@ -538,8 +546,20 @@ namespace DTXMania
             this.tTerminate();
             base.OnExiting(e);
         }
-        protected override void Update(GameTime gameTime)
-        {
+        protected override void Update(GameTime gameTime) {
+
+            if (SoundManager == null)
+                return;
+
+            if (this.Device == null)
+                return;
+
+            UPS.tカウンタ更新();
+            if (rCurrentStage != null)
+            {
+                rCurrentStage.OnUpdate();
+            }
+
         }
         protected override void Draw(GameTime gameTime)
         {
@@ -558,7 +578,9 @@ namespace DTXMania
                 CSoundManager.rcPerformanceTimer.tUpdate();
 
             if (InputManager != null)
-                InputManager.tPolling(this.bApplicationActive, CDTXMania.ConfigIni.bバッファ入力を行う);
+                if (!rCurrentStage.handleInputPolling()) {
+                    InputManager.tPolling(this.bApplicationActive, CDTXMania.ConfigIni.bバッファ入力を行う);
+                }
 
             if (FPS != null)
                 FPS.tカウンタ更新();
@@ -2344,7 +2366,7 @@ for (int i = 0; i < 3; i++) {
             }
 
             base.IsFixedTimeStep = true;
-            base.TargetElapsedTime = TimeSpan.FromTicks( 10000000 / 240 );
+            base.TargetElapsedTime = TimeSpan.FromTicks( 10000000 / 240 ); // henry: cap fps to 240 hz to bring <10 ms input latency
 
             base.Window.ClientSize = new Size(ConfigIni.nウインドウwidth, ConfigIni.nウインドウheight);	// #23510 2010.10.31 yyagi: to recover window size. width and height are able to get from Config.ini.
             base.InactiveSleepTime = TimeSpan.FromMilliseconds((float)(ConfigIni.n非フォーカス時スリープms));	// #23568 2010.11.3 yyagi: to support valiable sleep value when !IsActive
@@ -2402,6 +2424,7 @@ for (int i = 0; i < 3; i++) {
             try
             {
                 FPS = new CFPS();
+                UPS = new CFPS();
                 Trace.TraceInformation("FPSカウンタを生成しました。");
             }
             finally
@@ -2933,6 +2956,10 @@ for (int i = 0; i < 3; i++) {
                     if (FPS != null)
                     {
                         FPS = null;
+                    }
+                    if (UPS != null)
+                    { 
+                        UPS = null; 
                     }
                     Trace.TraceInformation("FPSカウンタの終了処理を完了しました。");
                 }

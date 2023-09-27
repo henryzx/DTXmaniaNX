@@ -115,6 +115,12 @@ namespace FDK
 									};
 									this.listInputEvent.Add(item);
 
+									if (this.bKeyState[(int)key] != true)
+									{
+										CInputManager.trackInputTime();
+                                        Trace.TraceInformation("KeyDown={0:D}", key);
+                                    }
+
 									this.bKeyState[(int)key] = true;
 									this.bKeyPushDown[(int)key] = true;
 								}

@@ -260,8 +260,8 @@ namespace FDK
         {
             if (this.bNotActivated)
                 return 0;
-
-            this.bJustStartedUpdate = true;
+			// henry: Trying not to break the existing JustStartedUpdate logic in OnDraw.
+            // this.bJustStartedUpdate = true;
 
 
             /* ここで進行を行う。*/

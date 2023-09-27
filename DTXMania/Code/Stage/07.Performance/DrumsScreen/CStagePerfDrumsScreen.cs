@@ -153,9 +153,82 @@ namespace DTXMania
 				base.OnManagedReleaseResources();
 			}
 		}
-		public override int OnUpdateAndDraw()
+
+        public override int OnUpdate()
+        {
+            if (base.bNotActivated)
+            {
+                return 0;
+            }
+
+            if (CDTXMania.Timer != null)
+                CDTXMania.Timer.tUpdate();
+            if (CSoundManager.rcPerformanceTimer != null)
+                CSoundManager.rcPerformanceTimer.tUpdate();
+
+            if (CDTXMania.InputManager != null)
+            {
+                CDTXMania.UPS?.tカウンタ更新();
+                CDTXMania.InputManager.tPolling(CDTXMania.app.bApplicationActive, CDTXMania.ConfigIni.bバッファ入力を行う);
+            }
+
+            // キー入力
+
+            if (CDTXMania.actPluginOccupyingInput == null)
+            {
+                this.tHandleKeyInput();
+            }
+
+            // もしサウンドの登録/削除が必要なら、実行する
+            if (queueMixerSound.Count > 0)
+            {
+                //Debug.WriteLine( "☆queueLength=" + queueMixerSound.Count );
+                DateTime dtnow = DateTime.Now;
+                TimeSpan ts = dtnow - dtLastQueueOperation;
+                if (ts.Milliseconds > 7)
+                {
+                    for (int i = 0; i < 2 && queueMixerSound.Count > 0; i++)
+                    {
+                        dtLastQueueOperation = dtnow;
+                        stmixer stm = queueMixerSound.Dequeue();
+                        if (stm.bIsAdd)
+                        {
+                            CDTXMania.SoundManager.AddMixer(stm.csound);
+                        }
+                        else
+                        {
+                            CDTXMania.SoundManager.RemoveMixer(stm.csound);
+                        }
+                    }
+                }
+            }
+
+            if (this.LoopEndMs != -1 && CSoundManager.rcPerformanceTimer.nCurrentTime > this.LoopEndMs)
+            {
+                Trace.TraceInformation("Reached end of loop");
+                this.tJumpInSong(this.LoopBeginMs == -1 ? 0 : this.LoopBeginMs);
+
+                //Reset hit counts and scores, so that the displayed score reflects the looped part only
+                this.nHitCount_ExclAuto.Drums.Perfect = 0;
+                this.nHitCount_ExclAuto.Drums.Great = 0;
+                this.nHitCount_ExclAuto.Drums.Good = 0;
+                this.nHitCount_ExclAuto.Drums.Poor = 0;
+                this.nHitCount_ExclAuto.Drums.Miss = 0;
+                this.actCombo.nCurrentCombo.Drums = 0;
+                this.actCombo.nCurrentCombo.HighestValue.Drums = 0;
+                base.actScore.nCurrentTrueScore.Drums = 0;
+
+                //
+                this.nTimingHitCount.Drums.nLate = 0;
+                this.nTimingHitCount.Drums.nEarly = 0;
+            }
+
+            return 0;
+        }
+
+        public override int OnUpdateAndDraw()
 		{
-			base.sw.Start();
+            base.sw.Start();
 			if( !base.bNotActivated )
             {
                 this.bIsFinishedPlaying = false;
@@ -414,61 +487,15 @@ namespace DTXMania
                     Debug.WriteLine("Restarting");
                     return (int)this.eReturnValueAfterFadeOut;
                 }
-
-                // もしサウンドの登録/削除が必要なら、実行する
-                if (queueMixerSound.Count > 0)
-                {
-                    //Debug.WriteLine( "☆queueLength=" + queueMixerSound.Count );
-                    DateTime dtnow = DateTime.Now;
-                    TimeSpan ts = dtnow - dtLastQueueOperation;
-                    if (ts.Milliseconds > 7)
-                    {
-                        for (int i = 0; i < 2 && queueMixerSound.Count > 0; i++)
-                        {
-                            dtLastQueueOperation = dtnow;
-                            stmixer stm = queueMixerSound.Dequeue();
-                            if (stm.bIsAdd)
-                            {
-                                CDTXMania.SoundManager.AddMixer(stm.csound);
-                            }
-                            else
-                            {
-                                CDTXMania.SoundManager.RemoveMixer(stm.csound);
-                            }
-                        }
-                    }
-                }
-
-                if (this.LoopEndMs != -1 && CSoundManager.rcPerformanceTimer.nCurrentTime > this.LoopEndMs)
-                {
-                    Trace.TraceInformation("Reached end of loop");
-                    this.tJumpInSong(this.LoopBeginMs == -1 ? 0 : this.LoopBeginMs);
-
-                    //Reset hit counts and scores, so that the displayed score reflects the looped part only
-                    this.nHitCount_ExclAuto.Drums.Perfect = 0;
-                    this.nHitCount_ExclAuto.Drums.Great = 0;
-                    this.nHitCount_ExclAuto.Drums.Good = 0;
-                    this.nHitCount_ExclAuto.Drums.Poor = 0;
-                    this.nHitCount_ExclAuto.Drums.Miss = 0;
-                    this.actCombo.nCurrentCombo.Drums = 0;
-                    this.actCombo.nCurrentCombo.HighestValue.Drums = 0;
-                    base.actScore.nCurrentTrueScore.Drums = 0;
-
-                    //
-                    this.nTimingHitCount.Drums.nLate = 0;
-                    this.nTimingHitCount.Drums.nEarly = 0;
-                }
-
-                // キー入力
-
-                if (CDTXMania.actPluginOccupyingInput == null)
-                    this.tHandleKeyInput();
             }
 			base.sw.Stop();
-			return 0;
+            return 0;
 		}
 
-
+        override public Boolean handleInputPolling()
+        {
+            return true;
+        }
 
 
 		// Other
@@ -678,7 +705,9 @@ namespace DTXMania
 						rChip = pChip;
 					}
 				}
-				this.tPlaySound( rChip, CSoundManager.rcPerformanceTimer.nシステム時刻, EInstrumentPart.DRUMS, CDTXMania.ConfigIni.n手動再生音量, CDTXMania.ConfigIni.b演奏音を強調する.Drums );
+                CInputManager.trackSoundPlayTime();
+                Trace.TraceInformation("PlaySound Hit ChannelNumber={0:D}", rChip.nChannelNumber);
+                this.tPlaySound( rChip, CSoundManager.rcPerformanceTimer.nシステム時刻, EInstrumentPart.DRUMS, CDTXMania.ConfigIni.n手動再生音量, CDTXMania.ConfigIni.b演奏音を強調する.Drums );
 			}
 			return true;
 		}
@@ -2364,6 +2393,8 @@ namespace DTXMania
                         {
                             #region [ (B1) 空打ち音が譜面で指定されているのでそれを再生する。]
                             //-----------------
+                            CInputManager.trackSoundPlayTime();
+                            Trace.TraceInformation("PlaySound Empty ChannelNumber={0:D}", rChip.nChannelNumber);
                             this.tPlaySound(rChip, CSoundManager.rcPerformanceTimer.nシステム時刻, EInstrumentPart.DRUMS, CDTXMania.ConfigIni.n手動再生音量, CDTXMania.ConfigIni.b演奏音を強調する.Drums);
                             //-----------------
                             #endregion
@@ -2771,6 +2802,8 @@ namespace DTXMania
                             if (rChip != null)
                             {
                                 // 空打ち音が見つかったので再生する。
+                                CInputManager.trackSoundPlayTime();
+                                Trace.TraceInformation("PlaySound Closest ChannelNumber={0:D}", rChip.nChannelNumber);
                                 this.tPlaySound(rChip, CSoundManager.rcPerformanceTimer.nシステム時刻, EInstrumentPart.DRUMS, CDTXMania.ConfigIni.n手動再生音量, CDTXMania.ConfigIni.b演奏音を強調する.Drums);
                             }
                             //-----------------

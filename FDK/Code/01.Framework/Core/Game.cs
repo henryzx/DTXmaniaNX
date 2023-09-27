@@ -26,6 +26,7 @@ using System.Windows.Forms;
 using SharpDX;
 using SharpDX.Direct3D9;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 
 namespace SampleFramework
 {
@@ -272,6 +273,8 @@ namespace SampleFramework
             }
         }
 
+        private int drawCount = 0;
+
         /// <summary>
         /// Performs one complete frame for the game.
         /// </summary>
@@ -376,7 +379,22 @@ namespace SampleFramework
                 }
             }
 
-            DrawFrame();
+            if (IsFixedTimeStep)
+            {
+                long skipTimes = 166667 / TargetElapsedTime.Ticks;
+                if (drawCount % skipTimes == 0)
+                {
+                    DrawFrame();
+                }
+                if (++drawCount == skipTimes)
+                {
+                    drawCount = 0;
+                }
+            } else
+            {
+                DrawFrame();
+            }
+            
 
             // refresh the FPS counter once per second
             lastUpdateFrame++;

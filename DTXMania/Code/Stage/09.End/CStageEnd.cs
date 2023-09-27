@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
 using FDK;
+using static DTXMania.CStageTitle;
+using SlimDXKey = SlimDX.DirectInput.Key;
 
 namespace DTXMania
 {
@@ -75,7 +77,11 @@ namespace DTXMania
 					this.ct時間稼ぎ.tStart( 0, 1, 0x3e8, CDTXMania.Timer );
                     base.bJustStartedUpdate = false;
 				}
-				this.ct時間稼ぎ.tUpdate();
+
+                if (CDTXMania.InputManager.Keyboard.bKeyPressed((int)SlimDXKey.Escape))
+                    return (int)E戻り値.EXIT;
+
+                this.ct時間稼ぎ.tUpdate();
 				if( this.ct時間稼ぎ.bReachedEndValue && !CDTXMania.Skin.soundGameEnd.b再生中 )
 				{
 					return 1;

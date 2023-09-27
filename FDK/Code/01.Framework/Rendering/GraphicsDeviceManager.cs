@@ -424,8 +424,8 @@ namespace SampleFramework
 
 			try
 			{
-				//result = Direct3D9.Device.TestCooperativeLevel();
-				Direct3D9.Device.Present();
+                //result = Direct3D9.Device.TestCooperativeLevel();
+                Direct3D9.Device.Present();
 			}
 			catch           // #23842 2011.1.6 yyagi: catch D3D9Exception to avoid unexpected termination by changing VSyncWait in fullscreen.
 			{

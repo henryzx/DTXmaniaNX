@@ -64,7 +64,7 @@ namespace DTXMania
                     y -= 0x10;
                     CDTXMania.actDisplayString.tPrint(x, y, CCharacterConsole.EFontType.White, string.Format("BPM:           {0:####0.00}", this.dbBPM));
                     y -= 0x10;
-                    CDTXMania.actDisplayString.tPrint(x, y, CCharacterConsole.EFontType.White, string.Format("Frame:         {0:####0} fps", CDTXMania.FPS.n現在のFPS));
+                    CDTXMania.actDisplayString.tPrint(x, y, CCharacterConsole.EFontType.White, string.Format("Frame:         {0:####0} fps ({1:####0})", CDTXMania.FPS.n現在のFPS, CDTXMania.UPS.n現在のFPS));
                     y -= 0x10;
                     
                     if (CDTXMania.ConfigIni.nSoundDeviceType != 0)
@@ -73,7 +73,7 @@ namespace DTXMania
                         y -= 0x10;
                         CDTXMania.actDisplayString.tPrint(x, y, CCharacterConsole.EFontType.White, string.Format("Sound Mixing:  {0:####0}", CDTXMania.SoundManager.GetMixingStreams()));
                         y -= 0x10;
-                        CDTXMania.actDisplayString.tPrint(x, y, CCharacterConsole.EFontType.White, string.Format("Sound Streams: {0:####0}", CDTXMania.SoundManager.GetStreams()));
+                        CDTXMania.actDisplayString.tPrint(x, y, CCharacterConsole.EFontType.White, string.Format("Sound Streams: {0:####0} ({1:####0})", CDTXMania.SoundManager.GetStreams(), CInputManager.currentInputLag));
                         y -= 0x10;
                     }
 			}
