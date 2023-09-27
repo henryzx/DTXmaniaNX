@@ -6,7 +6,7 @@ using System.Threading;
 using System.IO;
 using FDK;
 using System.Runtime.Serialization.Formatters.Binary;
-
+using static DTXMania.CStageTitle;
 
 namespace DTXMania
 {
@@ -95,9 +95,12 @@ namespace DTXMania
 					return 0;
 				}
 
-				// CSongManager s管理 = CDTXMania.SongManager;
+                if (CDTXMania.InputManager.Keyboard.bKeyPressed((int)SlimDX.DirectInput.Key.Escape))
+                    return (int)E戻り値.EXIT;
 
-				if( this.tx背景 != null )
+                // CSongManager s管理 = CDTXMania.SongManager;
+
+                if ( this.tx背景 != null )
 					this.tx背景.tDraw2D( CDTXMania.app.Device, 0, 0 );
 
 				#region [ this.str現在進行中 の決定 ]

@@ -4,7 +4,6 @@ using System.Text;
 using System.Diagnostics;
 using FDK;
 using static DTXMania.CStageTitle;
-using SlimDXKey = SlimDX.DirectInput.Key;
 
 namespace DTXMania
 {
@@ -78,7 +77,7 @@ namespace DTXMania
                     base.bJustStartedUpdate = false;
 				}
 
-                if (CDTXMania.InputManager.Keyboard.bKeyPressed((int)SlimDXKey.Escape))
+                if (CDTXMania.InputManager.Keyboard.bKeyPressed((int)SlimDX.DirectInput.Key.Escape))
                     return (int)E戻り値.EXIT;
 
                 this.ct時間稼ぎ.tUpdate();
