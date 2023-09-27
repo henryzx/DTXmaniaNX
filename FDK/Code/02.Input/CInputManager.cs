@@ -170,29 +170,29 @@ namespace FDK
 		}
 		public void tPolling(bool bWindowがアクティブ中, bool bバッファ入力を使用する)  // tポーリング
 		{
-				//				foreach( IInputDevice device in this.list入力デバイス )
-				for (int i = this.listInputDevices.Count - 1; i >= 0; i--)    // #24016 2011.1.6 yyagi: change not to use "foreach" to avoid InvalidOperation exception by Remove().
+			//				foreach( IInputDevice device in this.list入力デバイス )
+			for (int i = this.listInputDevices.Count - 1; i >= 0; i--)    // #24016 2011.1.6 yyagi: change not to use "foreach" to avoid InvalidOperation exception by Remove().
+			{
+				IInputDevice device = this.listInputDevices[i];
+				try
 				{
-					IInputDevice device = this.listInputDevices[i];
-					try
+					device.tPolling(bWindowがアクティブ中, bバッファ入力を使用する);
+				}
+				catch (SharpDX.SharpDXException e)                                      // #24016 2011.1.6 yyagi: catch exception for unplugging USB joystick, and remove the device object from the polling items.
+				{
+					if (e.ResultCode == ResultCode.OtherApplicationHasPriority)
 					{
-						device.tPolling(bWindowがアクティブ中, bバッファ入力を使用する);
+						// #xxxxx: 2017.5.9: from: このエラーの時は、何もしない。
 					}
-					catch (SharpDX.SharpDXException e)                                      // #24016 2011.1.6 yyagi: catch exception for unplugging USB joystick, and remove the device object from the polling items.
+					else
 					{
-						if (e.ResultCode == ResultCode.OtherApplicationHasPriority)
-						{
-							// #xxxxx: 2017.5.9: from: このエラーの時は、何もしない。
-						}
-						else
-						{
-							// #xxxxx: 2017.5.9: from: その他のエラーの場合は、デバイスが外されたと想定してRemoveする。
-							this.listInputDevices.Remove(device);
-							device.Dispose();
-							Trace.TraceError("tポーリング時に対象deviceが抜かれており例外発生。同deviceをポーリング対象からRemoveしました。");
-						}
+						// #xxxxx: 2017.5.9: from: その他のエラーの場合は、デバイスが外されたと想定してRemoveする。
+						this.listInputDevices.Remove(device);
+						device.Dispose();
+						Trace.TraceError("tポーリング時に対象deviceが抜かれており例外発生。同deviceをポーリング対象からRemoveしました。");
 					}
 				}
+			}
 		}
 
 		#region [ IDisposable＋α ]
@@ -284,14 +284,7 @@ namespace FDK
 
         private static CTimer inputLagTimer = new CTimer(CTimer.EType.MultiMedia);
         private static long inputTime = 0L;
-		private static long inputLag = 0L;
-		public static long currentInputLag
-		{
-			get
-			{
-				return inputLag;
-			}
-		}
+		public static long currentInputLag = 0L;
 
 
 		public static void trackInputTime()
@@ -301,7 +294,7 @@ namespace FDK
 
 		public static void trackSoundPlayTime()
 		{
-			inputLag = inputLagTimer.nCurrentTime - inputTime;
+            currentInputLag = inputLagTimer.nCurrentTime - inputTime;
 		}
 
         #endregion
