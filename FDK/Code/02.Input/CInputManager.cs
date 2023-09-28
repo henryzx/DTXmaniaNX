@@ -280,21 +280,21 @@ namespace FDK
         //-----------------
         #endregion
 
-        #region [ performance tracker ]
+        #region [ latency tracker ]
 
-        private static CTimer inputLagTimer = new CTimer(CTimer.EType.MultiMedia);
+        private static CTimer inputLatencyTimer = new CTimer(CTimer.EType.MultiMedia);
         private static long inputTime = 0L;
-		public static long currentInputLag = 0L;
-
+		public static long currentInputLatency = 0L;
+		
 
 		public static void trackInputTime()
 		{
-			inputTime = inputLagTimer.nCurrentTime;
+			inputTime = inputLatencyTimer.nSystemTimeMs;
 		}
 
 		public static void trackSoundPlayTime()
 		{
-            currentInputLag = inputLagTimer.nCurrentTime - inputTime;
+            currentInputLatency = inputLatencyTimer.nSystemTimeMs - inputTime;
 		}
 
         #endregion

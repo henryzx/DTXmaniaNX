@@ -496,7 +496,7 @@ namespace DTXMania
             this.Device.SetTransform(TransformState.Projection, Matrix.PerspectiveFovLH(CConversion.DegreeToRadian((float)60f), ((float)this.Device.Viewport.Width) / ((float)this.Device.Viewport.Height), -100f, 100f));
             this.Device.SetRenderState(RenderState.Lighting, false);
             this.Device.SetRenderState(RenderState.ZEnable, false);
-            this.Device.SetRenderState(RenderState.AntialiasedLineEnable, false);
+            this.Device.SetRenderState(RenderState.AntialiasedLineEnable, true);
             this.Device.SetRenderState(RenderState.AlphaTestEnable, true);
             this.Device.SetRenderState(RenderState.AlphaRef, 10);
 
@@ -590,9 +590,6 @@ namespace DTXMania
 
             if (this.Device == null)
                 return;
-
-            if (this.bApplicationActive)	// DTXMania本体起動中の本体/モニタの省電力モード移行を抑止
-                CPowerManagement.tDisableMonitorSuspend();
 
             // #xxxxx 2013.4.8 yyagi; sleepの挿入位置を、EndScnene～Present間から、BeginScene前に移動。描画遅延を小さくするため。
             #region [ スリープ ]
@@ -2349,10 +2346,10 @@ for (int i = 0; i < 3; i++) {
             //			settings.BackBufferCount = 3;
             settings.EnableVSync = ConfigIni.bVerticalSyncWait;
             //			settings.BackBufferFormat = Format.A8R8G8B8;
-            //			settings.MultisampleType = MultisampleType.FourSamples;
-            //			settings.MultisampleQuality = 4;
+            // settings.MultisampleType = MultisampleType.TwelveSamples;
+            // settings.MultisampleQuality = 4;
             //			settings.MultisampleType = MultisampleType.None;
-            //			settings.MultisampleQuality = 0;
+            //			settings.MultisampleQuality = 0;s
 
             try
             {
@@ -3199,6 +3196,8 @@ for (int i = 0; i < 3; i++) {
         private void Window_ApplicationActivated(object sender, EventArgs e)
         {
             this.bApplicationActive = true;
+            // DTXMania本体起動中の本体/モニタの省電力モード移行を抑止
+            CPowerManagement.tDisableMonitorSuspend();
         }
         private void Window_ApplicationDeactivated(object sender, EventArgs e)
         {

@@ -73,7 +73,7 @@ namespace DTXMania
                         y -= 0x10;
                         CDTXMania.actDisplayString.tPrint(x, y, CCharacterConsole.EFontType.White, string.Format("Sound Mixing:  {0:####0}", CDTXMania.SoundManager.GetMixingStreams()));
                         y -= 0x10;
-                        CDTXMania.actDisplayString.tPrint(x, y, CCharacterConsole.EFontType.White, string.Format("Sound Streams: {0:####0} ({1:####0})", CDTXMania.SoundManager.GetStreams(), CInputManager.currentInputLag));
+                        CDTXMania.actDisplayString.tPrint(x, y, CCharacterConsole.EFontType.White, string.Format("Sound Streams: {0:####0} ({1:####0})", CDTXMania.SoundManager.GetStreams(), CInputManager.currentInputLatency));
                         y -= 0x10;
                     }
 			}
