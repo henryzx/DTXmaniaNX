@@ -415,7 +415,7 @@ namespace SampleFramework
 				#region #23510 2010.11.13 yyagi: reset to 640x480
 				if ((m.WParam.ToInt32() & 0xFFFF) == MENU_VIEW)
 				{
-					base.ClientSize = new Size(SampleFramework.GameWindowSize.Width, SampleFramework.GameWindowSize.Height);
+					base.ClientSize = new Size(1920, 1080);
 					this.OnResizeEnd(new EventArgs());      // #23510 2010.11.20 yyagi: to set window size to Config.ini
 				}
 				else
@@ -642,7 +642,7 @@ namespace SampleFramework
 			item2.cbSize = (uint)Marshal.SizeOf(item2);
 			item2.fMask = MIIM_STRING | MIIM_ID;
 			item2.wID = MENU_VIEW;
-			item2.dwTypeData = "&" + SampleFramework.GameWindowSize.Width.ToString() + "x" + SampleFramework.GameWindowSize.Height.ToString();
+			item2.dwTypeData = "&1920x1080";
 			InsertMenuItem(hSysMenu, 6, true, ref item2);
 
 			//メニュー項目(1280x720)の挿入   

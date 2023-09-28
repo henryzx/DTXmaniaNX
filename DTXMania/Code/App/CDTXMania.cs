@@ -484,6 +484,7 @@ namespace DTXMania
                 Cursor.Hide();
                 this.bマウスカーソル表示中 = false;
             }
+            this.Device.Viewport = new Viewport(0, 0, SampleFramework.GameWindowSize.Width, SampleFramework.GameWindowSize.Height);
             this.Device.SetTransform(TransformState.View, Matrix.LookAtLH(new Vector3(0f, 0f, (float)(-SampleFramework.GameWindowSize.Height / 2 * Math.Sqrt(3.0))), new Vector3(0f, 0f, 0f), new Vector3(0f, 1f, 0f)));
             this.Device.SetTransform(TransformState.Projection, Matrix.PerspectiveFovLH(CConversion.DegreeToRadian((float)60f), ((float)this.Device.Viewport.Width) / ((float)this.Device.Viewport.Height), -100f, 100f));
             this.Device.SetRenderState(RenderState.Lighting, false);
@@ -503,6 +504,8 @@ namespace DTXMania
             this.Device.SetTextureStageState(0, TextureStage.AlphaOperation, TextureOperation.Modulate);
             this.Device.SetTextureStageState(0, TextureStage.AlphaArg1, 2);
             this.Device.SetTextureStageState(0, TextureStage.AlphaArg2, 1);
+
+            this.updateLetterBox(this.Window.ClientSize);
 
             if (this.listTopLevelActivities != null)
             {
@@ -531,6 +534,8 @@ namespace DTXMania
                 st.plugin.OnUnmanagedリソースの解放();
                 Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
             }
+
+            this.unloadLetterBox();
         }
         protected override void OnExiting(EventArgs e)
         {
@@ -668,6 +673,10 @@ namespace DTXMania
 
             this.Device.BeginScene();
             this.Device.Clear(ClearFlags.ZBuffer | ClearFlags.Target, SharpDX.Color.Black, 1f, 0);
+            var originalRenderTarget = this.Device.GetRenderTarget(0);
+            Texture renderTarget = this.GraphicsDeviceManager.Direct3D9.CreateRenderTarget(SampleFramework.GameWindowSize.Width, SampleFramework.GameWindowSize.Height);
+            var renderTargetSurface = renderTarget.GetSurfaceLevel(0);
+            this.Device.SetRenderTarget(0, renderTargetSurface);
 
             if (rCurrentStage != null)
             {
@@ -1723,6 +1732,12 @@ for (int i = 0; i < 3; i++) {
                         break;
                 }
             }
+
+            this.Device.SetRenderTarget(0, originalRenderTarget);
+            drawLetterBox(this.Device, renderTarget);
+            renderTargetSurface.Dispose();
+            renderTarget.Dispose();
+            originalRenderTarget.Dispose();
             this.Device.EndScene();			// Present()は game.csのOnFrameEnd()に登録された、GraphicsDeviceManager.game_FrameEnd() 内で実行されるので不要
             // (つまり、Present()は、Draw()完了後に実行される)
 #if !GPUFlushAfterPresent
@@ -1754,12 +1769,79 @@ for (int i = 0; i < 3; i++) {
             #endregion
         }
 
+        #region [ Screen LetterBox ]
+
+
+        private FDK.TransformedColoredTexturedVertex[] cvTransformedColoredVertices;
+        private void updateLetterBox(Size viewPortSize)
+        {
+            int colorWhite = new Color4(1f, 1f, 1f, 1f).ToRgba();
+            var szTextureSize = new Size(SampleFramework.GameWindowSize.Width, SampleFramework.GameWindowSize.Height);
+            var newHeight = (int)((float)szTextureSize.Height * viewPortSize.Width / szTextureSize.Width);
+            var newWidth = (int)((float)(szTextureSize.Width * viewPortSize.Height / szTextureSize.Height));
+            var newTop = (viewPortSize.Height - newHeight) / 2;
+            var newLeft = (viewPortSize.Width - newWidth) / 2;
+
+            System.Drawing.Rectangle canvasRect;
+            if (newTop > 0)
+                canvasRect = new System.Drawing.Rectangle(0, newTop, viewPortSize.Width, newHeight);
+            else
+                canvasRect = new System.Drawing.Rectangle(newLeft, 0, newWidth, viewPortSize.Height);
+
+
+            cvTransformedColoredVertices = new FDK.TransformedColoredTexturedVertex[4];
+
+            cvTransformedColoredVertices[0].Position.X = (float)canvasRect.Left;
+            cvTransformedColoredVertices[0].Position.Y = (float)canvasRect.Top;
+            cvTransformedColoredVertices[0].Position.Z = 0f;
+            cvTransformedColoredVertices[0].Position.W = 1f;
+            cvTransformedColoredVertices[0].Color = colorWhite;
+            cvTransformedColoredVertices[0].TextureCoordinates.X = 0f;
+            cvTransformedColoredVertices[0].TextureCoordinates.Y = 0f;
+
+            cvTransformedColoredVertices[1].Position.X = (float)canvasRect.Right;
+            cvTransformedColoredVertices[1].Position.Y = (float)canvasRect.Top;
+            cvTransformedColoredVertices[1].Position.Z = 0f;
+            cvTransformedColoredVertices[1].Position.W = 1f;
+            cvTransformedColoredVertices[1].Color = colorWhite;
+            cvTransformedColoredVertices[1].TextureCoordinates.X = 1f;
+            cvTransformedColoredVertices[1].TextureCoordinates.Y = 0f;
+
+            cvTransformedColoredVertices[2].Position.X = (float)canvasRect.Left;
+            cvTransformedColoredVertices[2].Position.Y = (float)canvasRect.Bottom;
+            cvTransformedColoredVertices[2].Position.Z = 0f;
+            cvTransformedColoredVertices[2].Position.W = 1f;
+            cvTransformedColoredVertices[2].Color = colorWhite;
+            cvTransformedColoredVertices[2].TextureCoordinates.X = 0f;
+            cvTransformedColoredVertices[2].TextureCoordinates.Y = 1f;
+
+            cvTransformedColoredVertices[3].Position.X = (float)canvasRect.Right;
+            cvTransformedColoredVertices[3].Position.Y = (float)canvasRect.Bottom;
+            cvTransformedColoredVertices[3].Position.Z = 0f;
+            cvTransformedColoredVertices[3].Position.W = 1f;
+            cvTransformedColoredVertices[3].Color = colorWhite;
+            cvTransformedColoredVertices[3].TextureCoordinates.X = 1f;
+            cvTransformedColoredVertices[3].TextureCoordinates.Y = 1f;
+        }
+
+        private void unloadLetterBox()
+        {
+            cvTransformedColoredVertices = null;
+        }
+        private void drawLetterBox(Device device, Texture texture)
+        {
+            device.SetTexture(0, texture);
+            device.VertexFormat = FDK.TransformedColoredTexturedVertex.Format;
+            device.DrawUserPrimitives(PrimitiveType.TriangleStrip, 0, 2, cvTransformedColoredVertices);
+        }
+        #endregion
+
 
         // Other
 
-		#region [ 汎用ヘルパー ]
-		//-----------------
-		public static CTexture tGenerateTexture( string fileName )
+        #region [ 汎用ヘルパー ]
+        //-----------------
+        public static CTexture tGenerateTexture( string fileName )
 		{
 			return tGenerateTexture( fileName, false );
 		}
@@ -2322,8 +2404,8 @@ for (int i = 0; i < 3; i++) {
             {
                 settings.Windowed = true;								// #30666 2013.2.2 yyagi: Fullscreenmode is "Maximized window" mode
             }
-            settings.BackBufferWidth = SampleFramework.GameWindowSize.Width;
-            settings.BackBufferHeight = SampleFramework.GameWindowSize.Height;
+            settings.BackBufferWidth = base.Window.ClientSize.Width;//SampleFramework.GameWindowSize.Width;
+            settings.BackBufferHeight = base.Window.ClientSize.Height;//SampleFramework.GameWindowSize.Height;
             //			settings.BackBufferCount = 3;
             settings.EnableVSync = ConfigIni.bVerticalSyncWait;
             //			settings.BackBufferFormat = Format.A8R8G8B8;
