@@ -379,21 +379,22 @@ namespace SampleFramework
                 }
             }
 
-            if (IsFixedTimeStep)
-            {
-                long skipTimes = 166667 / TargetElapsedTime.Ticks;
-                if (drawCount % skipTimes == 0)
-                {
-                    DrawFrame();
-                }
-                if (++drawCount == skipTimes)
-                {
-                    drawCount = 0;
-                }
-            } else
-            {
+            //if (SkipDrawEnabled && IsFixedTimeStep)
+            //{
+            //    long skipTimes = 166667 / TargetElapsedTime.Ticks;
+            //    if (drawCount % skipTimes == 0)
+            //    {
+            //        DrawFrame();
+            //    }
+            //    if (++drawCount == skipTimes)
+            //    {
+            //        drawCount =W 0;
+            //    }
+            //} 
+            //else
+           // {
                 DrawFrame();
-            }
+            //}
             
 
             // refresh the FPS counter once per second
