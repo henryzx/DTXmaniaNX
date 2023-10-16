@@ -2444,8 +2444,8 @@ for (int i = 0; i < 3; i++) {
                 Environment.Exit(-1);
             }
 
-            base.IsFixedTimeStep = false;
-            base.TargetElapsedTime = TimeSpan.FromTicks( 10000000 / 60 ); // henry: cap fps to 240 hz to bring <5 ms input latency
+            base.IsFixedTimeStep = true;
+            base.TargetElapsedTime = TimeSpan.FromTicks( 10000000 / 480 ); // henry: cap fps to 240 hz to bring <5 ms input latency
 
             base.Window.ClientSize = new Size(ConfigIni.nウインドウwidth, ConfigIni.nウインドウheight);	// #23510 2010.10.31 yyagi: to recover window size. width and height are able to get from Config.ini.
             base.InactiveSleepTime = TimeSpan.FromMilliseconds((float)(ConfigIni.n非フォーカス時スリープms));	// #23568 2010.11.3 yyagi: to support valiable sleep value when !IsActive

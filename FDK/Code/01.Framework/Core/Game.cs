@@ -273,7 +273,7 @@ namespace SampleFramework
             }
         }
 
-        private bool capDrawRate = true;
+        long drawCount = -1;
 
         /// <summary>
         /// Performs one complete frame for the game.
@@ -379,9 +379,10 @@ namespace SampleFramework
                 }
             }
 
+            long drawDropRate = (10000000 / 60) / TargetElapsedTime.Ticks;
+            drawCount = (drawCount + 1) % drawDropRate; 
 
-
-            if (!IsFixedTimeStep && lastFrameElapsedRealTime < targetElapsedTime)
+            if (IsFixedTimeStep && drawCount != 0L)
             {
                 return;
             }
