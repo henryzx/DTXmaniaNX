@@ -273,7 +273,7 @@ namespace SampleFramework
             }
         }
 
-        private int drawCount = 0;
+        private bool capDrawRate = true;
 
         /// <summary>
         /// Performs one complete frame for the game.
@@ -379,23 +379,14 @@ namespace SampleFramework
                 }
             }
 
-            //if (SkipDrawEnabled && IsFixedTimeStep)
-            //{
-            //    long skipTimes = 166667 / TargetElapsedTime.Ticks;
-            //    if (drawCount % skipTimes == 0)
-            //    {
-            //        DrawFrame();
-            //    }
-            //    if (++drawCount == skipTimes)
-            //    {
-            //        drawCount =W 0;
-            //    }
-            //} 
-            //else
-           // {
-                DrawFrame();
-            //}
-            
+
+
+            if (!IsFixedTimeStep && lastFrameElapsedRealTime < targetElapsedTime)
+            {
+                return;
+            }
+
+            DrawFrame();
 
             // refresh the FPS counter once per second
             lastUpdateFrame++;
