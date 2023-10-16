@@ -273,8 +273,8 @@ namespace SampleFramework
             }
         }
 
-        long drawCount = -1;
-
+        public bool IsHenry = true;
+        
         /// <summary>
         /// Performs one complete frame for the game.
         /// </summary>
@@ -309,7 +309,34 @@ namespace SampleFramework
                 elapsedAdjustedTime = maximumElapsedTime;
 
             // check if we are using a fixed or variable time step
-            if (IsFixedTimeStep)
+            if (IsHenry)
+            {
+                accumulatedElapsedGameTime += elapsedAdjustedTime;
+                lastFrameElapsedGameTime = TimeSpan.Zero;
+                if (lastFrameElapsedRealTime.Ticks < (10000000 / 60) && accumulatedElapsedGameTime.Ticks > TargetElapsedTime.Ticks)
+                {
+                    try
+                    {
+                        gameTime.ElapsedGameTime = 0;
+                        lastFrameElapsedGameTime = elapsedAdjustedTime;
+                        gameTime.TotalGameTime = (float)totalGameTime.TotalSeconds;
+                        gameTime.IsRunningSlowly = false;
+
+                        Update(gameTime);
+                        accumulatedElapsedGameTime = TimeSpan.FromTicks(accumulatedElapsedGameTime.Ticks % TargetElapsedTime.Ticks);
+                    }
+                    finally
+                    {
+                        totalGameTime += elapsedAdjustedTime;
+                    }
+                } 
+                else
+                {
+                    // skip update
+                }
+
+            }
+            else if (IsFixedTimeStep)
             {
                 accumulatedElapsedGameTime += elapsedAdjustedTime;
                 long ratio = accumulatedElapsedGameTime.Ticks / TargetElapsedTime.Ticks;
@@ -379,15 +406,24 @@ namespace SampleFramework
                 }
             }
 
-            long drawDropRate = (10000000 / 60) / TargetElapsedTime.Ticks;
-            drawCount = (drawCount + 1) % drawDropRate; 
-
-            if (IsFixedTimeStep && drawCount != 0L)
+            if (IsHenry)
             {
-                return;
+                if (lastFrameElapsedRealTime.Ticks < (10000000 / 60))
+                {
+                    // skip draw
+                    return;
+                }
             }
 
+            var lastFrameElapsedRealTimeBeforeReset = lastFrameElapsedRealTime.Ticks;
+
             DrawFrame();
+
+            if (IsHenry)
+            {
+                // restore accumulated remainings
+                lastFrameElapsedRealTime = TimeSpan.FromTicks(lastFrameElapsedRealTimeBeforeReset % (10000000 / 60));
+            }
 
             // refresh the FPS counter once per second
             lastUpdateFrame++;
@@ -528,10 +564,10 @@ namespace SampleFramework
             }
             finally
             {
-                lastFrameElapsedGameTime = TimeSpan.Zero;
-                lastFrameElapsedRealTime = TimeSpan.Zero;
+                    lastFrameElapsedGameTime = TimeSpan.Zero;
+                    lastFrameElapsedRealTime = TimeSpan.Zero;
+                }
             }
-        }
 
         void Application_Idle(object sender, EventArgs e)
         {
