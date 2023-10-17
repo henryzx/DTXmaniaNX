@@ -207,6 +207,7 @@ namespace SampleFramework
         protected Game()
         {
             IsFixedTimeStep = true;
+            IsWaitNextFrame = true;
 
             Window = new GameWindow();
             Window.ApplicationActivated += Window_ApplicationActivated;
@@ -259,6 +260,7 @@ namespace SampleFramework
                 gameTime.TotalRealTime = (float)clock.CurrentTime.TotalSeconds;
                 gameTime.IsRunningSlowly = false;
 
+                mainThread = Thread.CurrentThread;
                 Update(gameTime);
 
                 Application.Idle += Application_Idle;
@@ -272,6 +274,20 @@ namespace SampleFramework
             }
         }
 
+        public bool IsWaitNextFrame = true;
+        static volatile bool ForceUpdate = false;
+        static volatile bool IsWaitingNextFrame = false;
+        private static Thread mainThread;
+
+        public static void notifyUpdate()
+        {
+            ForceUpdate = true;
+            if (IsWaitingNextFrame)
+            {
+                mainThread.Interrupt();
+            }
+        }
+
         /// <summary>
         /// Performs one complete frame for the game.
         /// </summary>
@@ -281,11 +297,20 @@ namespace SampleFramework
             if (IsExiting)
                 return;
 
+            if (ForceUpdate)
+            {
+                Update(gameTime);
+                Trace.TraceInformation("update forced");
+                ForceUpdate = false;
+                return;
+            }
+
             // if we are inactive, sleep for a bit
             //if (!IsActive)
             //    Thread.Sleep((int)InactiveSleepTime.TotalMilliseconds);
 
             clock.Step();
+            Trace.TraceInformation("tick");
 
             gameTime.TotalRealTime = (float)clock.CurrentTime.TotalSeconds;
             gameTime.ElapsedRealTime = (float)clock.ElapsedTime.TotalSeconds;
@@ -312,8 +337,24 @@ namespace SampleFramework
                 long ratio = accumulatedElapsedGameTime.Ticks / TargetElapsedTime.Ticks;
                 accumulatedElapsedGameTime = TimeSpan.FromTicks(accumulatedElapsedGameTime.Ticks % TargetElapsedTime.Ticks);
                 lastFrameElapsedGameTime = TimeSpan.Zero;
-                if (ratio == 0)
+                if (ratio == 0) {
+
+                    if (IsWaitNextFrame)
+                    {
+                        //var tickElapsedTimestamp = Stopwatch.GetTimestamp() - tickStartTimestamp;
+                        var gap = TargetElapsedTime - accumulatedElapsedGameTime;// - TimeSpan.FromTicks(tickElapsedTimestamp);
+                        //if (gap > TimeSpan.Zero) 
+                        if (gap > TimeSpan.FromMilliseconds(1))
+                        {
+                            // loopwait for last 1 milliseconds
+                            Trace.TraceInformation("wait");
+                            Wait(gap);
+                        }
+
+                    }
+
                     return;
+                }
                 TimeSpan targetElapsedTime = TargetElapsedTime;
 
                 if (ratio > 1)
@@ -343,6 +384,7 @@ namespace SampleFramework
                         gameTime.IsRunningSlowly = drawRunningSlowly;
 
                         Update(gameTime);
+                        Trace.TraceInformation("update");
                     }
                     finally
                     {
@@ -368,6 +410,7 @@ namespace SampleFramework
                         gameTime.IsRunningSlowly = false;
 
                         Update(gameTime);
+                        Trace.TraceInformation("update");
                     }
                     finally
                     {
@@ -377,6 +420,8 @@ namespace SampleFramework
             }
 
             DrawFrame();
+            Trace.TraceInformation("DRAW");
+
 
             // refresh the FPS counter once per second
             lastUpdateFrame++;
@@ -386,6 +431,25 @@ namespace SampleFramework
                 lastUpdateTime = (float)clock.CurrentTime.TotalSeconds;
                 lastUpdateFrame = 0;
             }
+        }
+
+        private bool Wait(TimeSpan waitTime)
+        {
+            try
+            {
+                IsWaitingNextFrame = true;
+                Thread.Sleep(waitTime);
+                return false;
+            }
+            catch (Exception ignored)
+            {
+                return true;
+            }
+            finally
+            {
+                IsWaitingNextFrame = false;
+            }
+
         }
 
         /// <summary>
@@ -517,10 +581,10 @@ namespace SampleFramework
             }
             finally
             {
-                lastFrameElapsedGameTime = TimeSpan.Zero;
-                lastFrameElapsedRealTime = TimeSpan.Zero;
+                    lastFrameElapsedGameTime = TimeSpan.Zero;
+                    lastFrameElapsedRealTime = TimeSpan.Zero;
+                }
             }
-        }
 
         void Application_Idle(object sender, EventArgs e)
         {

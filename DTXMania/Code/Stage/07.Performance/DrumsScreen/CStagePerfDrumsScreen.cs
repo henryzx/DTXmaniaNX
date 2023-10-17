@@ -111,7 +111,7 @@ namespace DTXMania
                 }
             }
             dtLastQueueOperation = DateTime.MinValue;
-		}
+        }
 		public override void OnDeactivate()
 		{
 			base.OnDeactivate();
@@ -168,7 +168,6 @@ namespace DTXMania
 
             if (CDTXMania.InputManager != null)
             {
-                CDTXMania.UPS?.tカウンタ更新();
                 CDTXMania.InputManager.tPolling(CDTXMania.app.bApplicationActive, CDTXMania.ConfigIni.bバッファ入力を行う);
             }
 

@@ -51,6 +51,7 @@ namespace FDK
 					{
 						this.listEventBuffer.Add(item);
 					}
+					Game.notifyUpdate();
                 }
 			}
 		}
