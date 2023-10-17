@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace FDK
 {
-	public class CInputMIDI : IInputDevice, IDisposable
+    public class CInputMIDI : IInputDevice, IDisposable
 	{
 		// プロパティ
 
@@ -13,9 +13,9 @@ namespace FDK
 		public List<STInputEvent> listEventBuffer;
 
 
-		// コンストラクタ
+        // コンストラクタ
 
-		public CInputMIDI( uint nID )
+        public CInputMIDI( uint nID )
 		{
 			this.hMidiIn = IntPtr.Zero;
 			this.listEventBuffer = new List<STInputEvent>( 32 );
@@ -37,17 +37,21 @@ namespace FDK
 				int nPara1 = ( dwParam1 >> 8 ) & 0xFF;
 				int nPara2 = ( dwParam1 >> 16 ) & 0xFF;
 
-// Trace.TraceInformation( "MIDIevent={0:X2} para1={1:X2} para2={2:X2}", nMIDIevent, nPara1, nPara2 );
-			
+
 				if( ( nMIDIevent == 0x90 ) && ( nPara2 != 0 ) )
 				{
-					STInputEvent item = new STInputEvent();
+                    CInputManager.trackInputTime();
+                    Trace.TraceInformation("MIDIevent={0:X2} para1={1:X2} para2={2:X2}", nMIDIevent, nPara1, nPara2);
+                    STInputEvent item = new STInputEvent();
 					item.nKey = nPara1;
 					item.b押された = true;
 					item.nTimeStamp = n受信システム時刻;
 					item.nVelocity = nPara2;
-					this.listEventBuffer.Add( item );
-				}
+					lock (this.listEventBuffer)
+					{
+						this.listEventBuffer.Add(item);
+					}
+                }
 			}
 		}
 
@@ -62,12 +66,14 @@ namespace FDK
 		public void tPolling( bool bWindowがアクティブ中, bool bバッファ入力を使用する )
 		{
 			// this.listInputEvent = new List<STInputEvent>( 32 );
-			this.listInputEvent.Clear();								// #xxxxx 2012.6.11 yyagi; To optimize, I removed new();
+			this.listInputEvent.Clear();                                // #xxxxx 2012.6.11 yyagi; To optimize, I removed new();
 
-			for( int i = 0; i < this.listEventBuffer.Count; i++ )
-				this.listInputEvent.Add( this.listEventBuffer[ i ] );
-
-			this.listEventBuffer.Clear();
+            lock (this.listEventBuffer)
+			{
+				for (int i = 0; i < this.listEventBuffer.Count; i++)
+					this.listInputEvent.Add(this.listEventBuffer[i]);
+				this.listEventBuffer.Clear();
+			}
 		}
 		public bool bKeyPressed( int nKey )
 		{
