@@ -39,11 +39,10 @@ namespace FDK
 				int nPara1 = ( dwParam1 >> 8 ) & 0xFF;
 				int nPara2 = ( dwParam1 >> 16 ) & 0xFF;
 
-                CInputManager.trackInputTime();
-                Trace.TraceInformation( "MIDIevent={0:X2} para1={1:X2} para2={2:X2}", nMIDIevent, nPara1, nPara2 );
-
                 if ( ( nMIDIevent == 0x90 ) && ( nPara2 != 0 ) )
 				{
+                    CInputManager.trackInputTime();
+                    Trace.TraceInformation("MIDIevent={0:X2} para1={1:X2} para2={2:X2}", nMIDIevent, nPara1, nPara2);
                     STInputEvent item = new STInputEvent();
 					item.nKey = nPara1;
 					item.b押された = true;
@@ -53,6 +52,7 @@ namespace FDK
 					{
 						this.listEventBuffer.Add(item);
 					}
+					Game.notifyUpdate();
                 }
 			}
 		}
