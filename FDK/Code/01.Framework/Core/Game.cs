@@ -26,6 +26,7 @@ using System.Windows.Forms;
 using SharpDX;
 using SharpDX.Direct3D9;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 
 namespace SampleFramework
 {
