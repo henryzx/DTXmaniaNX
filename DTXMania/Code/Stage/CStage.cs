@@ -91,5 +91,11 @@ namespace DTXMania
 			if (Presence is var presence && presence != null)
 				CDTXMania.DiscordRichPresence?.tSetPresence(presence);
 		}
+
+		// Take over input polling.
+		public virtual Boolean handleInputPolling()
+		{
+			return false;
+		}
 	}
 }
