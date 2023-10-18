@@ -87,6 +87,14 @@ namespace DTXMania
             get;
             private set;
         }
+
+        // Update Per Second
+        public static CFPS UPS
+        {
+            get;
+            private set;
+        }
+
         public static CInputManager InputManager
         {
             get;
@@ -558,7 +566,7 @@ namespace DTXMania
                 CSoundManager.rcPerformanceTimer.tUpdate();
 
             if (InputManager != null)
-                InputManager.tPolling(this.bApplicationActive, CDTXMania.ConfigIni.bバッファ入力を行う);
+                    InputManager.tPolling(this.bApplicationActive, CDTXMania.ConfigIni.bバッファ入力を行う);
 
             if (FPS != null)
                 FPS.tカウンタ更新();
@@ -568,9 +576,6 @@ namespace DTXMania
 
             if (this.Device == null)
                 return;
-
-            if (this.bApplicationActive)	// DTXMania本体起動中の本体/モニタの省電力モード移行を抑止
-                CPowerManagement.tDisableMonitorSuspend();
 
             // #xxxxx 2013.4.8 yyagi; sleepの挿入位置を、EndScnene～Present間から、BeginScene前に移動。描画遅延を小さくするため。
             #region [ スリープ ]
@@ -2401,6 +2406,7 @@ for (int i = 0; i < 3; i++) {
             try
             {
                 FPS = new CFPS();
+                UPS = new CFPS();
                 Trace.TraceInformation("FPSカウンタを生成しました。");
             }
             finally
@@ -2933,6 +2939,10 @@ for (int i = 0; i < 3; i++) {
                     {
                         FPS = null;
                     }
+                    if (UPS != null)
+                    { 
+                        UPS = null; 
+                    }
                     Trace.TraceInformation("FPSカウンタの終了処理を完了しました。");
                 }
                 finally
@@ -3171,6 +3181,8 @@ for (int i = 0; i < 3; i++) {
         private void Window_ApplicationActivated(object sender, EventArgs e)
         {
             this.bApplicationActive = true;
+            // DTXMania本体起動中の本体/モニタの省電力モード移行を抑止
+            CPowerManagement.tDisableMonitorSuspend();
         }
         private void Window_ApplicationDeactivated(object sender, EventArgs e)
         {
