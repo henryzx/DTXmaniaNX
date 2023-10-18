@@ -156,39 +156,31 @@ namespace DTXMania
 			}
 		}
 
-
         public void PostHandleInput(object sender, EventArgs args)
         {
-            ThreadPool.SetMaxThreads(1, 1);
             ThreadPool.QueueUserWorkItem(new WaitCallback(HandleInput));
         }
         public void HandleInput(object o)
         {
-            if (base.bNotActivated)
-            {
-                return;
-            }
+            lock(CDTXMania.app) {
+                if (base.bNotActivated)
+                {
+                    return;
+                }
 
-            if (CDTXMania.Timer != null)
-                CDTXMania.Timer.tUpdate();
-            if (CSoundManager.rcPerformanceTimer != null)
-                CSoundManager.rcPerformanceTimer.tUpdate();
+                if (CDTXMania.Timer != null)
+                    CDTXMania.Timer.tUpdate();
 
-            if (CDTXMania.InputManager != null)
-            {
-                CDTXMania.UPS?.tカウンタ更新();
-                CDTXMania.InputManager.tPolling(CDTXMania.app.bApplicationActive, CDTXMania.ConfigIni.bバッファ入力を行う);
-            }
+                if (CSoundManager.rcPerformanceTimer != null)
+                    CSoundManager.rcPerformanceTimer.tUpdate();
 
-            // キー入力
+                if (CDTXMania.InputManager != null)
+                {
+                    CDTXMania.UPS?.tカウンタ更新();
+                    CDTXMania.InputManager.tPolling(CDTXMania.app.bApplicationActive, CDTXMania.ConfigIni.bバッファ入力を行う);
+                }
 
-            if (CDTXMania.actPluginOccupyingInput == null)
-            {
-                this.tHandleKeyInput();
-            }
-
-            // もしサウンドの登録/削除が必要なら、実行する
-            lock (queueMixerSound) {
+                // もしサウンドの登録/削除が必要なら、実行する
                 if (queueMixerSound.Count > 0)
                 {
                     //Debug.WriteLine( "☆queueLength=" + queueMixerSound.Count );
@@ -210,6 +202,13 @@ namespace DTXMania
                             }
                         }
                     }
+                }
+
+                // キー入力
+
+                if (CDTXMania.actPluginOccupyingInput == null)
+                {
+                    this.tHandleKeyInput();
                 }
             }
         }
@@ -477,27 +476,24 @@ namespace DTXMania
                 }
 
                 // もしサウンドの登録/削除が必要なら、実行する
-                lock (queueMixerSound)
+                if (queueMixerSound.Count > 0)
                 {
-                    if (queueMixerSound.Count > 0)
+                    //Debug.WriteLine( "☆queueLength=" + queueMixerSound.Count );
+                    DateTime dtnow = DateTime.Now;
+                    TimeSpan ts = dtnow - dtLastQueueOperation;
+                    if (ts.Milliseconds > 7)
                     {
-                        //Debug.WriteLine( "☆queueLength=" + queueMixerSound.Count );
-                        DateTime dtnow = DateTime.Now;
-                        TimeSpan ts = dtnow - dtLastQueueOperation;
-                        if (ts.Milliseconds > 7)
+                        for (int i = 0; i < 2 && queueMixerSound.Count > 0; i++)
                         {
-                            for (int i = 0; i < 2 && queueMixerSound.Count > 0; i++)
+                            dtLastQueueOperation = dtnow;
+                            stmixer stm = queueMixerSound.Dequeue();
+                            if (stm.bIsAdd)
                             {
-                                dtLastQueueOperation = dtnow;
-                                stmixer stm = queueMixerSound.Dequeue();
-                                if (stm.bIsAdd)
-                                {
-                                    CDTXMania.SoundManager.AddMixer(stm.csound);
-                                }
-                                else
-                                {
-                                    CDTXMania.SoundManager.RemoveMixer(stm.csound);
-                                }
+                                CDTXMania.SoundManager.AddMixer(stm.csound);
+                            }
+                            else
+                            {
+                                CDTXMania.SoundManager.RemoveMixer(stm.csound);
                             }
                         }
                     }
@@ -525,8 +521,8 @@ namespace DTXMania
 
                 // キー入力
 
-                if (CDTXMania.actPluginOccupyingInput == null)
-                    this.tHandleKeyInput();
+                    if (CDTXMania.actPluginOccupyingInput == null)
+                        this.tHandleKeyInput();
             }
 			base.sw.Stop();
             return 0;

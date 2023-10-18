@@ -551,758 +551,509 @@ namespace DTXMania
         }
         protected override void Draw(GameTime gameTime)
         {
-            //Do not draw until SoundManager is initialized
-            //Fixed issue where exception is raised upon loading when Japanese IME is enabled
-            if(SoundManager == null)
+            lock (app)
             {
-                return;
-            }
+                //Do not draw until SoundManager is initialized
+                //Fixed issue where exception is raised upon loading when Japanese IME is enabled
+                if (SoundManager == null)
+                {
+                    return;
+                }
 
-            SoundManager.t再生中の処理をする();
+                SoundManager.t再生中の処理をする();
 
-            if (Timer != null)
-                Timer.tUpdate();
-            if (CSoundManager.rcPerformanceTimer != null)
-                CSoundManager.rcPerformanceTimer.tUpdate();
+                if (Timer != null)
+                    Timer.tUpdate();
+                if (CSoundManager.rcPerformanceTimer != null)
+                    CSoundManager.rcPerformanceTimer.tUpdate();
 
-            if (InputManager != null)
+                if (InputManager != null)
                     InputManager.tPolling(this.bApplicationActive, CDTXMania.ConfigIni.bバッファ入力を行う);
 
-            if (FPS != null)
-                FPS.tカウンタ更新();
+                if (FPS != null)
+                    FPS.tカウンタ更新();
 
-            //if( Pad != null )					ポーリング時にクリアしたらダメ！曲の開始時に1回だけクリアする。(2010.9.11)
-            //	Pad.stDetectedDevice.Clear();
+                //if( Pad != null )					ポーリング時にクリアしたらダメ！曲の開始時に1回だけクリアする。(2010.9.11)
+                //	Pad.stDetectedDevice.Clear();
 
-            if (this.Device == null)
-                return;
+                if (this.Device == null)
+                    return;
 
-            // #xxxxx 2013.4.8 yyagi; sleepの挿入位置を、EndScnene～Present間から、BeginScene前に移動。描画遅延を小さくするため。
-            #region [ スリープ ]
-            if (ConfigIni.nフレーム毎スリープms >= 0)			// #xxxxx 2011.11.27 yyagi
-            {
-                Thread.Sleep(ConfigIni.nフレーム毎スリープms);
-            }
-            #endregion
-
-            #region [ DTXCreator/DTX2WAVからの指示 ]
-            if (this.Window.IsReceivedMessage)  // ウインドウメッセージで、
-            {
-                //Received message from DTXCreator
-                string strMes = this.Window.strMessage;
-                this.Window.IsReceivedMessage = false;
-                if (strMes != null)
+                // #xxxxx 2013.4.8 yyagi; sleepの挿入位置を、EndScnene～Present間から、BeginScene前に移動。描画遅延を小さくするため。
+                #region [ スリープ ]
+                if (ConfigIni.nフレーム毎スリープms >= 0)            // #xxxxx 2011.11.27 yyagi
                 {
-                    Trace.TraceInformation("Received Message. ParseArguments {0}。", strMes);
-                    CommandParse.ParseArguments(strMes, ref DTXVmode, ref DTX2WAVmode);
+                    Thread.Sleep(ConfigIni.nフレーム毎スリープms);
+                }
+                #endregion
 
-                    if (DTXVmode.Enabled)
+                #region [ DTXCreator/DTX2WAVからの指示 ]
+                if (this.Window.IsReceivedMessage)  // ウインドウメッセージで、
+                {
+                    //Received message from DTXCreator
+                    string strMes = this.Window.strMessage;
+                    this.Window.IsReceivedMessage = false;
+                    if (strMes != null)
                     {
-                        //Bring DTXViewer to the front whenever a DTXCreator Play DTX button is triggered
-                        if (!this.Window.Visible)
-                        {
-                            this.Window.Show();
-                        }
+                        Trace.TraceInformation("Received Message. ParseArguments {0}。", strMes);
+                        CommandParse.ParseArguments(strMes, ref DTXVmode, ref DTX2WAVmode);
 
-                        if (this.Window.WindowState == FormWindowState.Minimized)
+                        if (DTXVmode.Enabled)
                         {
-                            this.Window.WindowState = FormWindowState.Normal;
-                        }
-
-                        this.Window.Activate();
-                        this.Window.TopMost = true;  // important
-                        this.Window.TopMost = false; // important
-                        this.Window.Focus();         // important
-
-                        bCompactMode = true;
-                        strCompactModeFile = DTXVmode.filename;
-                        /*if (DTXVmode.Command == CDTXVmode.ECommand.Preview)
-                        {
-                            // preview soundの再生
-                            string strPreviewFilename = DTXVmode.previewFilename;
-                            //Trace.TraceInformation( "Preview Filename=" + DTXVmode.previewFilename );
-                            try
+                            //Bring DTXViewer to the front whenever a DTXCreator Play DTX button is triggered
+                            if (!this.Window.Visible)
                             {
-                                if (this.previewSound != null)
+                                this.Window.Show();
+                            }
+
+                            if (this.Window.WindowState == FormWindowState.Minimized)
+                            {
+                                this.Window.WindowState = FormWindowState.Normal;
+                            }
+
+                            this.Window.Activate();
+                            this.Window.TopMost = true;  // important
+                            this.Window.TopMost = false; // important
+                            this.Window.Focus();         // important
+
+                            bCompactMode = true;
+                            strCompactModeFile = DTXVmode.filename;
+                            /*if (DTXVmode.Command == CDTXVmode.ECommand.Preview)
+                            {
+                                // preview soundの再生
+                                string strPreviewFilename = DTXVmode.previewFilename;
+                                //Trace.TraceInformation( "Preview Filename=" + DTXVmode.previewFilename );
+                                try
                                 {
-                                    this.previewSound.tサウンドを停止する();
-                                    this.previewSound.Dispose();
+                                    if (this.previewSound != null)
+                                    {
+                                        this.previewSound.tサウンドを停止する();
+                                        this.previewSound.Dispose();
+                                        this.previewSound = null;
+                                    }
+                                    this.previewSound = CDTXMania.Instance.Sound管理.tサウンドを生成する(strPreviewFilename);
+                                    this.previewSound.n音量 = DTXVmode.previewVolume;
+                                    this.previewSound.n位置 = DTXVmode.previewPan;
+                                    this.previewSound.t再生を開始する();
+                                    Trace.TraceInformation("DTXCからの指示で、サウンドを生成しました。({0})", strPreviewFilename);
+                                }
+                                catch
+                                {
+                                    Trace.TraceError("DTXCからの指示での、サウンドの生成に失敗しました。({0})", strPreviewFilename);
+                                    if (this.previewSound != null)
+                                    {
+                                        this.previewSound.Dispose();
+                                    }
                                     this.previewSound = null;
                                 }
-                                this.previewSound = CDTXMania.Instance.Sound管理.tサウンドを生成する(strPreviewFilename);
-                                this.previewSound.n音量 = DTXVmode.previewVolume;
-                                this.previewSound.n位置 = DTXVmode.previewPan;
-                                this.previewSound.t再生を開始する();
-                                Trace.TraceInformation("DTXCからの指示で、サウンドを生成しました。({0})", strPreviewFilename);
-                            }
-                            catch
+                            }*/
+                        }
+                        if (DTX2WAVmode.Enabled)
+                        {
+                            if (DTX2WAVmode.Command == CDTX2WAVmode.ECommand.Cancel)
                             {
-                                Trace.TraceError("DTXCからの指示での、サウンドの生成に失敗しました。({0})", strPreviewFilename);
-                                if (this.previewSound != null)
+                                Trace.TraceInformation("録音のCancelコマンドをDTXMania本体が受信しました。");
+                                //Microsoft.VisualBasic.Interaction.AppActivate("メモ帳");
+                                //SendKeys.Send("{ESC}");
+                                //SendKeys.SendWait("%{F4}");
+                                //Application.Exit();
+                                if (DTX != null)    // 曲読み込みの前に録音Cancelされると、DTXがnullのままここにきてでGPFとなる→nullチェック追加
                                 {
-                                    this.previewSound.Dispose();
+                                    DTX.tStopPlayingAllChips();
+                                    DTX.OnDeactivate();
                                 }
-                                this.previewSound = null;
+                                rCurrentStage.OnDeactivate();
+
+                                //Environment.ExitCode = 10010;		// この組み合わせではダメ、返り値が反映されない
+                                //base.Window.Close();
+                                Environment.Exit(10010);            // このやり方ならばOK
                             }
-                        }*/
+                        }
                     }
-                    if (DTX2WAVmode.Enabled)
+                }
+                #endregion
+
+                this.Device.BeginScene();
+                this.Device.Clear(ClearFlags.ZBuffer | ClearFlags.Target, SharpDX.Color.Black, 1f, 0);
+
+                if (rCurrentStage != null)
+                {
+                    this.nUpdateAndDrawReturnValue = (rCurrentStage != null) ? rCurrentStage.OnUpdateAndDraw() : 0;
+
+                    #region [ プラグインの進行描画 ]
+                    //---------------------
+                    foreach (STPlugin sp in this.listPlugins)
                     {
-                        if (DTX2WAVmode.Command == CDTX2WAVmode.ECommand.Cancel)
-                        {
-                            Trace.TraceInformation("録音のCancelコマンドをDTXMania本体が受信しました。");
-                            //Microsoft.VisualBasic.Interaction.AppActivate("メモ帳");
-                            //SendKeys.Send("{ESC}");
-                            //SendKeys.SendWait("%{F4}");
-                            //Application.Exit();
-                            if (DTX != null)    // 曲読み込みの前に録音Cancelされると、DTXがnullのままここにきてでGPFとなる→nullチェック追加
-                            {
-                                DTX.tStopPlayingAllChips();
-                                DTX.OnDeactivate();
-                            }
-                            rCurrentStage.OnDeactivate();
+                        Directory.SetCurrentDirectory(sp.strプラグインフォルダ);
 
-                            //Environment.ExitCode = 10010;		// この組み合わせではダメ、返り値が反映されない
-                            //base.Window.Close();
-                            Environment.Exit(10010);            // このやり方ならばOK
-                        }
+                        if (CDTXMania.actPluginOccupyingInput == null || CDTXMania.actPluginOccupyingInput == sp.plugin)
+                            sp.plugin.On進行描画(CDTXMania.Pad, CDTXMania.InputManager.Keyboard);
+                        else
+                            sp.plugin.On進行描画(null, null);
+
+                        Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
                     }
-                }
-            }
-            #endregion
-
-            this.Device.BeginScene();
-            this.Device.Clear(ClearFlags.ZBuffer | ClearFlags.Target, SharpDX.Color.Black, 1f, 0);
-
-            if (rCurrentStage != null)
-            {
-                this.nUpdateAndDrawReturnValue = (rCurrentStage != null) ? rCurrentStage.OnUpdateAndDraw() : 0;
-
-                #region [ プラグインの進行描画 ]
-                //---------------------
-                foreach (STPlugin sp in this.listPlugins)
-                {
-                    Directory.SetCurrentDirectory(sp.strプラグインフォルダ);
-
-                    if (CDTXMania.actPluginOccupyingInput == null || CDTXMania.actPluginOccupyingInput == sp.plugin)
-                        sp.plugin.On進行描画(CDTXMania.Pad, CDTXMania.InputManager.Keyboard);
-                    else
-                        sp.plugin.On進行描画(null, null);
-
-                    Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
-                }
-                //---------------------
-                #endregion
+                    //---------------------
+                    #endregion
 
 
-                CScoreIni scoreIni = null;
+                    CScoreIni scoreIni = null;
 
-                //if (Control.IsKeyLocked(Keys.CapsLock)) // #30925 2013.3.11 yyagi; capslock=ON時は、EnumSongsしないようにして、起動負荷とASIOの音切れの関係を確認する
-                //{                                       // → songs.db等の書き込み時だと音切れするっぽい
-                //    CDTXMania.stageSongSelection.bIsEnumeratingSongs = false;
-                //    actEnumSongs.OnDeactivate();
-                //    EnumSongs.SongListEnumCompletelyDone();
-                //}
-                #region [ 曲検索スレッドの起動/終了 ]					// ここに"Enumerating Songs..."表示を集約
-                if (!CDTXMania.bCompactMode)
-                {
-                    actEnumSongs.OnUpdateAndDraw();							// "Enumerating Songs..."アイコンの描画
-                }							// "Enumerating Songs..."アイコンの描画
-                switch (rCurrentStage.eStageID)
-                {
-                    case CStage.EStage.Title:
-                    case CStage.EStage.Config:
-                    case CStage.EStage.Option:
-                    case CStage.EStage.SongSelection:
-                    case CStage.EStage.SongLoading:
-                        if (EnumSongs != null)
-                        {
-                            #region [ (特定条件時) 曲検索スレッドの起動_開始 ]
-                            if (rCurrentStage.eStageID == CStage.EStage.Title &&
-                                 rPreviousStage.eStageID == CStage.EStage.Startup &&
-                                 this.nUpdateAndDrawReturnValue == (int)CStageTitle.E戻り値.継続 &&
-                                 !EnumSongs.IsSongListEnumStarted)
+                    //if (Control.IsKeyLocked(Keys.CapsLock)) // #30925 2013.3.11 yyagi; capslock=ON時は、EnumSongsしないようにして、起動負荷とASIOの音切れの関係を確認する
+                    //{                                       // → songs.db等の書き込み時だと音切れするっぽい
+                    //    CDTXMania.stageSongSelection.bIsEnumeratingSongs = false;
+                    //    actEnumSongs.OnDeactivate();
+                    //    EnumSongs.SongListEnumCompletelyDone();
+                    //}
+                    #region [ 曲検索スレッドの起動/終了 ]					// ここに"Enumerating Songs..."表示を集約
+                    if (!CDTXMania.bCompactMode)
+                    {
+                        actEnumSongs.OnUpdateAndDraw();                         // "Enumerating Songs..."アイコンの描画
+                    }                           // "Enumerating Songs..."アイコンの描画
+                    switch (rCurrentStage.eStageID)
+                    {
+                        case CStage.EStage.Title:
+                        case CStage.EStage.Config:
+                        case CStage.EStage.Option:
+                        case CStage.EStage.SongSelection:
+                        case CStage.EStage.SongLoading:
+                            if (EnumSongs != null)
                             {
-                                actEnumSongs.OnActivate();
-                                CDTXMania.stageSongSelection.bIsEnumeratingSongs = true;
-                                EnumSongs.Init(CDTXMania.SongManager.listSongsDB, CDTXMania.SongManager.nNbScoresFromSongsDB);	// songs.db情報と、取得した曲数を、新インスタンスにも与える
-                                EnumSongs.StartEnumFromDisk();		// 曲検索スレッドの起動_開始
-                                if (CDTXMania.SongManager.nNbScoresFromSongsDB == 0)	// もし初回起動なら、検索スレッドのプライオリティをLowestでなくNormalにする
+                                #region [ (特定条件時) 曲検索スレッドの起動_開始 ]
+                                if (rCurrentStage.eStageID == CStage.EStage.Title &&
+                                     rPreviousStage.eStageID == CStage.EStage.Startup &&
+                                     this.nUpdateAndDrawReturnValue == (int)CStageTitle.E戻り値.継続 &&
+                                     !EnumSongs.IsSongListEnumStarted)
                                 {
-                                    EnumSongs.ChangeEnumeratePriority(ThreadPriority.Normal);
+                                    actEnumSongs.OnActivate();
+                                    CDTXMania.stageSongSelection.bIsEnumeratingSongs = true;
+                                    EnumSongs.Init(CDTXMania.SongManager.listSongsDB, CDTXMania.SongManager.nNbScoresFromSongsDB);  // songs.db情報と、取得した曲数を、新インスタンスにも与える
+                                    EnumSongs.StartEnumFromDisk();      // 曲検索スレッドの起動_開始
+                                    if (CDTXMania.SongManager.nNbScoresFromSongsDB == 0)    // もし初回起動なら、検索スレッドのプライオリティをLowestでなくNormalにする
+                                    {
+                                        EnumSongs.ChangeEnumeratePriority(ThreadPriority.Normal);
+                                    }
                                 }
-                            }
-                            #endregion
-
-                            #region [ 曲検索の中断と再開 ]
-                            if (rCurrentStage.eStageID == CStage.EStage.SongSelection && !EnumSongs.IsSongListEnumCompletelyDone)
-                            {
-                                switch (this.nUpdateAndDrawReturnValue)
-                                {
-                                    case 0:		// 何もない
-                                        //if ( CDTXMania.stageSongSelection.bIsEnumeratingSongs )
-                                        if (!CDTXMania.stageSongSelection.bIsPlayingPremovie)
-                                        {
-                                            EnumSongs.Resume();						// #27060 2012.2.6 yyagi 中止していたバックグランド曲検索を再開
-                                            EnumSongs.IsSlowdown = false;
-                                        }
-                                        else
-                                        {
-                                            // EnumSongs.Suspend();					// #27060 2012.3.2 yyagi #PREMOVIE再生中は曲検索を低速化
-                                            EnumSongs.IsSlowdown = true;
-                                        }
-                                        actEnumSongs.OnActivate();
-                                        break;
-
-                                    case 2:		// 曲決定
-                                        EnumSongs.Suspend();						// #27060 バックグラウンドの曲検索を一時停止
-                                        actEnumSongs.OnDeactivate();
-                                        break;
-                                }
-                            }
-                            #endregion
-
-                            #region [ 曲探索中断待ち待機 ]
-                            if (rCurrentStage.eStageID == CStage.EStage.SongLoading && !EnumSongs.IsSongListEnumCompletelyDone &&
-                                EnumSongs.thDTXFileEnumerate != null)							// #28700 2012.6.12 yyagi; at Compact mode, enumerating thread does not exist.
-                            {
-                                EnumSongs.WaitUntilSuspended();									// 念のため、曲検索が一時中断されるまで待機
-                            }
-                            #endregion
-
-                            #region [ 曲検索が完了したら、実際の曲リストに反映する ]
-                            // CStageSongSelection.OnActivate() に回した方がいいかな？
-                            if (EnumSongs.IsSongListEnumerated)
-                            {
-                                actEnumSongs.OnDeactivate();
-                                CDTXMania.stageSongSelection.bIsEnumeratingSongs = false;
-
-                                bool bRemakeSongTitleBar = (rCurrentStage.eStageID == CStage.EStage.SongSelection) ? true : false;
-                                CDTXMania.stageSongSelection.Refresh(EnumSongs.Songs管理, bRemakeSongTitleBar);
-                                EnumSongs.SongListEnumCompletelyDone();
-                            }
-                            #endregion
-                        }
-                        break;
-                }
-                #endregion
-
-                switch (rCurrentStage.eStageID)
-                {
-                    case CStage.EStage.DoNothing:
-                        break;
-
-                    case CStage.EStage.Startup:
-                        #region [ *** ]
-                        //-----------------------------
-                        if (this.nUpdateAndDrawReturnValue != 0)
-                        {
-                            if (!bCompactMode)
-                            {
-                                rCurrentStage.OnDeactivate();
-                                Trace.TraceInformation("----------------------");
-                                Trace.TraceInformation("■ Title");
-                                stageTitle.OnActivate();
-                                rPreviousStage = rCurrentStage;
-                                rCurrentStage = stageTitle;
-                            }
-                            else
-                            {
-                                rCurrentStage.OnDeactivate();
-                                Trace.TraceInformation("----------------------");
-                                Trace.TraceInformation("■ SongLoading");
-                                stageSongLoading.OnActivate();
-                                rPreviousStage = rCurrentStage;
-                                rCurrentStage = stageSongLoading;
-
-                            }
-                            foreach (STPlugin pg in this.listPlugins)
-                            {
-                                Directory.SetCurrentDirectory(pg.strプラグインフォルダ);
-                                pg.plugin.OnChangeStage();
-                                Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
-                            }
-
-                            this.tRunGarbageCollector();
-                        }
-                        //-----------------------------
-                        #endregion
-                        break;
-
-                    case CStage.EStage.Title:
-                        #region [ *** ]
-                        //-----------------------------
-                        if( this.nUpdateAndDrawReturnValue != 0 )
-                        {
-                            switch (this.nUpdateAndDrawReturnValue)
-                            {
-                                case (int)CStageTitle.E戻り値.GAMESTART:
-                                    #region [ 選曲処理へ ]
-                                    //-----------------------------
-                                    rCurrentStage.OnDeactivate();
-                                    Trace.TraceInformation("----------------------");
-                                    Trace.TraceInformation("■ SongSelection");
-                                    stageSongSelection.OnActivate();
-                                    rPreviousStage = rCurrentStage;
-                                    rCurrentStage = stageSongSelection;
-                                    //-----------------------------
-                                    #endregion
-                                    break;
-
-                                #region [ OPTION: 廃止済 ]
-                                /*
-							    case 2:									// #24525 OPTIONとCONFIGの統合に伴い、OPTIONは廃止
-								    #region [ *** ]
-								    //-----------------------------
-								    rCurrentStage.OnDeactivate();
-								    Trace.TraceInformation( "----------------------" );
-								    Trace.TraceInformation( "■ Option" );
-								    stageOption.OnActivate();
-								    rPreviousStage = rCurrentStage;
-								    rCurrentStage = stageOption;
-								    //-----------------------------
-								    #endregion
-								    break;
-                                    */
                                 #endregion
 
-                                case (int)CStageTitle.E戻り値.CONFIG:
-                                    #region [ *** ]
-                                    //-----------------------------
-                                    rCurrentStage.OnDeactivate();
-                                    Trace.TraceInformation("----------------------");
-                                    Trace.TraceInformation("■ Config");
-                                    stageConfig.OnActivate();
-                                    rPreviousStage = rCurrentStage;
-                                    rCurrentStage = stageConfig;
-                                    //-----------------------------
-                                    #endregion
-                                    break;
+                                #region [ 曲検索の中断と再開 ]
+                                if (rCurrentStage.eStageID == CStage.EStage.SongSelection && !EnumSongs.IsSongListEnumCompletelyDone)
+                                {
+                                    switch (this.nUpdateAndDrawReturnValue)
+                                    {
+                                        case 0:     // 何もない
+                                                    //if ( CDTXMania.stageSongSelection.bIsEnumeratingSongs )
+                                            if (!CDTXMania.stageSongSelection.bIsPlayingPremovie)
+                                            {
+                                                EnumSongs.Resume();                     // #27060 2012.2.6 yyagi 中止していたバックグランド曲検索を再開
+                                                EnumSongs.IsSlowdown = false;
+                                            }
+                                            else
+                                            {
+                                                // EnumSongs.Suspend();					// #27060 2012.3.2 yyagi #PREMOVIE再生中は曲検索を低速化
+                                                EnumSongs.IsSlowdown = true;
+                                            }
+                                            actEnumSongs.OnActivate();
+                                            break;
 
-                                case (int)CStageTitle.E戻り値.EXIT:
-                                    #region [ *** ]
-                                    //-----------------------------
-                                    rCurrentStage.OnDeactivate();
-                                    Trace.TraceInformation("----------------------");
-                                    Trace.TraceInformation("■ End");
-                                    stageEnd.OnActivate();
-                                    rPreviousStage = rCurrentStage;
-                                    rCurrentStage = stageEnd;
-                                    //-----------------------------
-                                    #endregion
-                                    break;
+                                        case 2:     // 曲決定
+                                            EnumSongs.Suspend();                        // #27060 バックグラウンドの曲検索を一時停止
+                                            actEnumSongs.OnDeactivate();
+                                            break;
+                                    }
+                                }
+                                #endregion
+
+                                #region [ 曲探索中断待ち待機 ]
+                                if (rCurrentStage.eStageID == CStage.EStage.SongLoading && !EnumSongs.IsSongListEnumCompletelyDone &&
+                                    EnumSongs.thDTXFileEnumerate != null)                           // #28700 2012.6.12 yyagi; at Compact mode, enumerating thread does not exist.
+                                {
+                                    EnumSongs.WaitUntilSuspended();                                 // 念のため、曲検索が一時中断されるまで待機
+                                }
+                                #endregion
+
+                                #region [ 曲検索が完了したら、実際の曲リストに反映する ]
+                                // CStageSongSelection.OnActivate() に回した方がいいかな？
+                                if (EnumSongs.IsSongListEnumerated)
+                                {
+                                    actEnumSongs.OnDeactivate();
+                                    CDTXMania.stageSongSelection.bIsEnumeratingSongs = false;
+
+                                    bool bRemakeSongTitleBar = (rCurrentStage.eStageID == CStage.EStage.SongSelection) ? true : false;
+                                    CDTXMania.stageSongSelection.Refresh(EnumSongs.Songs管理, bRemakeSongTitleBar);
+                                    EnumSongs.SongListEnumCompletelyDone();
+                                }
+                                #endregion
                             }
+                            break;
+                    }
+                    #endregion
 
-                            foreach (STPlugin pg in this.listPlugins)
+                    switch (rCurrentStage.eStageID)
+                    {
+                        case CStage.EStage.DoNothing:
+                            break;
+
+                        case CStage.EStage.Startup:
+                            #region [ *** ]
+                            //-----------------------------
+                            if (this.nUpdateAndDrawReturnValue != 0)
                             {
-                                Directory.SetCurrentDirectory(pg.strプラグインフォルダ);
-                                pg.plugin.OnChangeStage();
-                                Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
-                            }
-
-                            this.tRunGarbageCollector();       // #31980 2013.9.3 yyagi タイトル画面でだけ、毎フレームGCを実行して重くなっていた問題の修正
-                        }
-
-                        //-----------------------------
-                        #endregion
-                        break;
-
-
-                    case CStage.EStage.Option:
-                        #region [ *** ]
-                        //-----------------------------
-                        if (this.nUpdateAndDrawReturnValue != 0)
-                        {
-                            switch (rPreviousStage.eStageID)
-                            {
-                                case CStage.EStage.Title:
-                                    #region [ *** ]
-                                    //-----------------------------
+                                if (!bCompactMode)
+                                {
                                     rCurrentStage.OnDeactivate();
                                     Trace.TraceInformation("----------------------");
                                     Trace.TraceInformation("■ Title");
                                     stageTitle.OnActivate();
                                     rPreviousStage = rCurrentStage;
                                     rCurrentStage = stageTitle;
-
-                                    foreach (STPlugin pg in this.listPlugins)
-                                    {
-                                        Directory.SetCurrentDirectory(pg.strプラグインフォルダ);
-                                        pg.plugin.OnChangeStage();
-                                        Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
-                                    }
-
-                                    this.tRunGarbageCollector();
-                                    break;
-                                //-----------------------------
-                                    #endregion
-
-                                case CStage.EStage.SongSelection:
-                                    #region [ *** ]
-                                    //-----------------------------
-                                    rCurrentStage.OnDeactivate();
-                                    Trace.TraceInformation("----------------------");
-                                    Trace.TraceInformation("■ SongSelection");
-                                    stageSongSelection.OnActivate();
-                                    rPreviousStage = rCurrentStage;
-                                    rCurrentStage = stageSongSelection;
-
-                                    foreach (STPlugin pg in this.listPlugins)
-                                    {
-                                        Directory.SetCurrentDirectory(pg.strプラグインフォルダ);
-                                        pg.plugin.OnChangeStage();
-                                        Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
-                                    }
-
-                                    this.tRunGarbageCollector();
-                                    break;
-                                //-----------------------------
-                                    #endregion
-                            }
-                        }
-                        //-----------------------------
-                        #endregion
-                        break;
-
-
-                    case CStage.EStage.Config:
-                        #region [ *** ]
-                        //-----------------------------
-                        if (this.nUpdateAndDrawReturnValue != 0)
-                        {
-                            switch (rPreviousStage.eStageID)
-                            {
-                                case CStage.EStage.Title:
-                                    #region [ *** ]
-                                    //-----------------------------
-                                    rCurrentStage.OnDeactivate();
-                                    Trace.TraceInformation("----------------------");
-                                    Trace.TraceInformation("■ Title");
-                                    stageTitle.OnActivate();
-                                    rPreviousStage = rCurrentStage;
-                                    rCurrentStage = stageTitle;
-
-                                    foreach (STPlugin pg in this.listPlugins)
-                                    {
-                                        Directory.SetCurrentDirectory(pg.strプラグインフォルダ);
-                                        pg.plugin.OnChangeStage();
-                                        Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
-                                    }
-
-                                    this.tRunGarbageCollector();
-                                    break;
-                                //-----------------------------
-                                    #endregion
-
-                                case CStage.EStage.SongSelection:
-                                    #region [ *** ]
-                                    //-----------------------------
-                                    rCurrentStage.OnDeactivate();
-                                    Trace.TraceInformation("----------------------");
-                                    Trace.TraceInformation("■ SongSelection");
-                                    stageSongSelection.OnActivate();
-                                    rPreviousStage = rCurrentStage;
-                                    rCurrentStage = stageSongSelection;
-
-                                    foreach (STPlugin pg in this.listPlugins)
-                                    {
-                                        Directory.SetCurrentDirectory(pg.strプラグインフォルダ);
-                                        pg.plugin.OnChangeStage();
-                                        Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
-                                    }
-
-                                    this.tRunGarbageCollector();
-                                    break;
-                                //-----------------------------
-                                    #endregion
-                            }
-                        }
-                        //-----------------------------
-                        #endregion
-                        break;
-
-                    case CStage.EStage.SongSelection:
-                        #region [ *** ]
-                        //-----------------------------
-                        switch (this.nUpdateAndDrawReturnValue)
-                        {
-                            case (int)CStageSongSelection.EReturnValue.ReturnToTitle:
-                                #region [ *** ]
-                                //-----------------------------
-                                rCurrentStage.OnDeactivate();
-                                Trace.TraceInformation("----------------------");
-                                Trace.TraceInformation("■ Title");
-                                stageTitle.OnActivate();
-                                rPreviousStage = rCurrentStage;
-                                rCurrentStage = stageTitle;
-
-                                foreach (STPlugin pg in this.listPlugins)
-                                {
-                                    Directory.SetCurrentDirectory(pg.strプラグインフォルダ);
-                                    pg.plugin.OnChangeStage();
-                                    Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
-                                }
-
-                                this.tRunGarbageCollector();
-                                break;
-                            //-----------------------------
-                                #endregion
-
-                            case (int)CStageSongSelection.EReturnValue.Selected:
-                                #region [ *** ]
-                                //-----------------------------
-                                rCurrentStage.OnDeactivate();
-                                Trace.TraceInformation("----------------------");
-                                Trace.TraceInformation("■ SongLoading");
-                                stageSongLoading.OnActivate();
-                                rPreviousStage = rCurrentStage;
-                                rCurrentStage = stageSongLoading;
-
-                                foreach (STPlugin pg in this.listPlugins)
-                                {
-                                    Directory.SetCurrentDirectory(pg.strプラグインフォルダ);
-                                    pg.plugin.OnChangeStage();
-                                    Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
-                                }
-
-                                this.tRunGarbageCollector();
-                                break;
-                            //-----------------------------
-                                #endregion
-
-
-                            case (int)CStageSongSelection.EReturnValue.CallOptions:
-                                #region [ *** ]
-                                //-----------------------------
-
-                                rCurrentStage.OnDeactivate();
-                                Trace.TraceInformation("----------------------");
-                                Trace.TraceInformation("■ Option");
-                                stageOption.OnActivate();
-                                rPreviousStage = rCurrentStage;
-                                rCurrentStage = stageOption;
-
-                                foreach (STPlugin pg in this.listPlugins)
-                                {
-                                    Directory.SetCurrentDirectory(pg.strプラグインフォルダ);
-                                    pg.plugin.OnChangeStage();
-                                    Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
-                                }
-
-                                this.tRunGarbageCollector();
-                                break;
-                            //-----------------------------
-                                #endregion
-
-                            case (int)CStageSongSelection.EReturnValue.CallConfig:
-                                #region [ *** ]
-                                //-----------------------------
-                                rCurrentStage.OnDeactivate();
-                                Trace.TraceInformation("----------------------");
-                                Trace.TraceInformation("■ Config");
-                                stageConfig.OnActivate();
-                                rPreviousStage = rCurrentStage;
-                                rCurrentStage = stageConfig;
-
-                                foreach (STPlugin pg in this.listPlugins)
-                                {
-                                    Directory.SetCurrentDirectory(pg.strプラグインフォルダ);
-                                    pg.plugin.OnChangeStage();
-                                    Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
-                                }
-
-                                this.tRunGarbageCollector();
-                                break;
-                            //-----------------------------
-                                #endregion
-
-                            case (int)CStageSongSelection.EReturnValue.ChangeSking:
-
-                                #region [ *** ]
-                                //-----------------------------
-                                rCurrentStage.OnDeactivate();
-                                Trace.TraceInformation("----------------------");
-                                Trace.TraceInformation("■ スキン切り替え");
-                                stageChangeSkin.OnActivate();
-                                rPreviousStage = rCurrentStage;
-                                rCurrentStage = stageChangeSkin;
-                                break;
-                            //-----------------------------
-                                #endregion
-                        }
-                        //-----------------------------
-                        #endregion
-                        break;
-
-                    case CStage.EStage.SongLoading:
-                        #region [ *** ]
-                        //-----------------------------
-                        if (this.nUpdateAndDrawReturnValue != 0)
-                        {
-                            CDTXMania.Pad.stDetectedDevice.Clear();	// 入力デバイスフラグクリア(2010.9.11)
-
-                            rCurrentStage.OnDeactivate();
-
-                            #region [ ESC押下時は、曲の読み込みを中止して選曲画面に戻る ]
-                            if (this.nUpdateAndDrawReturnValue == (int)ESongLoadingScreenReturnValue.LoadingStopped)
-                            {
-                                //DTX.tStopPlayingAllChips();
-                                DTX.OnDeactivate();
-                                Trace.TraceInformation("曲の読み込みを中止しました。");
-                                this.tRunGarbageCollector();
-                                Trace.TraceInformation("----------------------");
-                                Trace.TraceInformation("■ SongSelection");
-                                stageSongSelection.OnActivate();
-                                rPreviousStage = rCurrentStage;
-                                rCurrentStage = stageSongSelection;
-                                foreach (STPlugin pg in this.listPlugins)
-                                {
-                                    Directory.SetCurrentDirectory(pg.strプラグインフォルダ);
-                                    pg.plugin.OnChangeStage();
-                                    Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
-                                }
-                                break;
-                            }
-                            #endregion
-
-
-                            if (!ConfigIni.bGuitarRevolutionMode)
-                            {
-                                Trace.TraceInformation("----------------------");
-                                Trace.TraceInformation("■ Playing（ドラム画面）");
-#if false		// #23625 2011.1.11 Config.iniからダメージ/回復値の定数変更を行う場合はここを有効にする 087リリースに合わせ機能無効化
-for (int i = 0; i < 5; i++)
-{
-	for (int j = 0; j < 2; j++)
-	{
-		stage演奏ドラム画面.fDamageGaugeDelta[i, j] = ConfigIni.fGaugeFactor[i, j];
-	}
-}
-for (int i = 0; i < 3; i++) {
-	stage演奏ドラム画面.fDamageLevelFactor[i] = ConfigIni.fDamageLevelFactor[i];
-}		
-#endif
-                                rPreviousStage = rCurrentStage;
-                                rCurrentStage = stagePerfDrumsScreen;
-                            }
-                            else
-                            {
-                                Trace.TraceInformation("----------------------");
-                                Trace.TraceInformation("■ Playing（ギター画面）");
-#if false		// #23625 2011.1.11 Config.iniからダメージ/回復値の定数変更を行う場合はここを有効にする 087リリースに合わせ機能無効化
-for (int i = 0; i < 5; i++)
-{
-	for (int j = 0; j < 2; j++)
-	{
-		stage演奏ギター画面.fDamageGaugeDelta[i, j] = ConfigIni.fGaugeFactor[i, j];
-	}
-}
-for (int i = 0; i < 3; i++) {
-	stage演奏ギター画面.fDamageLevelFactor[i] = ConfigIni.fDamageLevelFactor[i];
-}		
-#endif
-                                rPreviousStage = rCurrentStage;
-                                rCurrentStage = stagePerfGuitarScreen;
-                            }
-
-                            foreach (STPlugin pg in this.listPlugins)
-                            {
-                                Directory.SetCurrentDirectory(pg.strプラグインフォルダ);
-                                pg.plugin.OnChangeStage();
-                                Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
-                            }
-
-                            this.tRunGarbageCollector();
-                        }
-                        //-----------------------------
-                        #endregion
-                        break;
-
-                    case CStage.EStage.Playing:
-                        #region [ *** ]
-                        //-----------------------------
-                        #region [ DTXVモード中にDTXCreatorから指示を受けた場合の処理 ]
-                        if (DTXVmode.Enabled && DTXVmode.Refreshed)
-                        {
-                            DTXVmode.Refreshed = false;
-
-                            if (DTXVmode.Command == CDTXVmode.ECommand.Stop)
-                            {
-                                ((CStagePerfCommonScreen)rCurrentStage).t停止();
-
-                                //if (previewSound != null)
-                                //{
-                                //    this.previewSound.tサウンドを停止する();
-                                //    this.previewSound.Dispose();
-                                //    this.previewSound = null;
-                                //}
-                            }
-                            else if (DTXVmode.Command == CDTXVmode.ECommand.Play)
-                            {
-                                if (DTXVmode.NeedReload)
-                                {
-                                    ((CStagePerfCommonScreen)rCurrentStage).t再読込();
-                                    if (DTXVmode.GRmode)
-                                    {
-                                        CDTXMania.ConfigIni.bDrumsEnabled = false;
-                                        CDTXMania.ConfigIni.bGuitarEnabled = true;
-                                    }
-                                    else
-                                    {
-                                        //Both in Original DTXMania, but we don't support that
-                                        CDTXMania.ConfigIni.bDrumsEnabled = true;
-                                        CDTXMania.ConfigIni.bGuitarEnabled = false;
-                                    }
-                                    CDTXMania.ConfigIni.bTimeStretch = DTXVmode.TimeStretch;
-                                    CSoundManager.bIsTimeStretch = DTXVmode.TimeStretch;
-                                    if (CDTXMania.ConfigIni.bVerticalSyncWait != DTXVmode.VSyncWait)
-                                    {
-                                        CDTXMania.ConfigIni.bVerticalSyncWait = DTXVmode.VSyncWait;
-                                        //CDTXMania.b次のタイミングで垂直帰線同期切り替えを行う = true;
-                                    }
                                 }
                                 else
                                 {
-                                    ((CStagePerfCommonScreen)rCurrentStage).tJumpInSongToBar(CDTXMania.DTXVmode.nStartBar);
+                                    rCurrentStage.OnDeactivate();
+                                    Trace.TraceInformation("----------------------");
+                                    Trace.TraceInformation("■ SongLoading");
+                                    stageSongLoading.OnActivate();
+                                    rPreviousStage = rCurrentStage;
+                                    rCurrentStage = stageSongLoading;
+
                                 }
-                            }
-                        }
-                        #endregion
-
-                        switch (this.nUpdateAndDrawReturnValue)
-                        {
-                            case (int)EPerfScreenReturnValue.Continue:
-                                break;
-
-                            case (int)EPerfScreenReturnValue.Interruption:
-                            case (int)EPerfScreenReturnValue.Restart:
-                                #region [ Cancel performance ]
-                                //-----------------------------
-                                if (!DTXVmode.Enabled && !DTX2WAVmode.Enabled)
-                                {
-                                    scoreIni = this.tScoreIniへBGMAdjustとHistoryとPlayCountを更新("Play cancelled");
-                                }
-
-                                #region [ プラグイン On演奏キャンセル() の呼び出し ]
-                                //---------------------
                                 foreach (STPlugin pg in this.listPlugins)
                                 {
                                     Directory.SetCurrentDirectory(pg.strプラグインフォルダ);
-                                    pg.plugin.On演奏キャンセル(scoreIni);
+                                    pg.plugin.OnChangeStage();
                                     Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
                                 }
-                                //---------------------
+
+                                this.tRunGarbageCollector();
+                            }
+                            //-----------------------------
+                            #endregion
+                            break;
+
+                        case CStage.EStage.Title:
+                            #region [ *** ]
+                            //-----------------------------
+                            if (this.nUpdateAndDrawReturnValue != 0)
+                            {
+                                switch (this.nUpdateAndDrawReturnValue)
+                                {
+                                    case (int)CStageTitle.E戻り値.GAMESTART:
+                                        #region [ 選曲処理へ ]
+                                        //-----------------------------
+                                        rCurrentStage.OnDeactivate();
+                                        Trace.TraceInformation("----------------------");
+                                        Trace.TraceInformation("■ SongSelection");
+                                        stageSongSelection.OnActivate();
+                                        rPreviousStage = rCurrentStage;
+                                        rCurrentStage = stageSongSelection;
+                                        //-----------------------------
+                                        #endregion
+                                        break;
+
+                                    #region [ OPTION: 廃止済 ]
+                                    /*
+                                    case 2:									// #24525 OPTIONとCONFIGの統合に伴い、OPTIONは廃止
+                                        #region [ *** ]
+                                        //-----------------------------
+                                        rCurrentStage.OnDeactivate();
+                                        Trace.TraceInformation( "----------------------" );
+                                        Trace.TraceInformation( "■ Option" );
+                                        stageOption.OnActivate();
+                                        rPreviousStage = rCurrentStage;
+                                        rCurrentStage = stageOption;
+                                        //-----------------------------
+                                        #endregion
+                                        break;
+                                        */
+                                    #endregion
+
+                                    case (int)CStageTitle.E戻り値.CONFIG:
+                                        #region [ *** ]
+                                        //-----------------------------
+                                        rCurrentStage.OnDeactivate();
+                                        Trace.TraceInformation("----------------------");
+                                        Trace.TraceInformation("■ Config");
+                                        stageConfig.OnActivate();
+                                        rPreviousStage = rCurrentStage;
+                                        rCurrentStage = stageConfig;
+                                        //-----------------------------
+                                        #endregion
+                                        break;
+
+                                    case (int)CStageTitle.E戻り値.EXIT:
+                                        #region [ *** ]
+                                        //-----------------------------
+                                        rCurrentStage.OnDeactivate();
+                                        Trace.TraceInformation("----------------------");
+                                        Trace.TraceInformation("■ End");
+                                        stageEnd.OnActivate();
+                                        rPreviousStage = rCurrentStage;
+                                        rCurrentStage = stageEnd;
+                                        //-----------------------------
+                                        #endregion
+                                        break;
+                                }
+
+                                foreach (STPlugin pg in this.listPlugins)
+                                {
+                                    Directory.SetCurrentDirectory(pg.strプラグインフォルダ);
+                                    pg.plugin.OnChangeStage();
+                                    Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
+                                }
+
+                                this.tRunGarbageCollector();       // #31980 2013.9.3 yyagi タイトル画面でだけ、毎フレームGCを実行して重くなっていた問題の修正
+                            }
+
+                            //-----------------------------
+                            #endregion
+                            break;
+
+
+                        case CStage.EStage.Option:
+                            #region [ *** ]
+                            //-----------------------------
+                            if (this.nUpdateAndDrawReturnValue != 0)
+                            {
+                                switch (rPreviousStage.eStageID)
+                                {
+                                    case CStage.EStage.Title:
+                                        #region [ *** ]
+                                        //-----------------------------
+                                        rCurrentStage.OnDeactivate();
+                                        Trace.TraceInformation("----------------------");
+                                        Trace.TraceInformation("■ Title");
+                                        stageTitle.OnActivate();
+                                        rPreviousStage = rCurrentStage;
+                                        rCurrentStage = stageTitle;
+
+                                        foreach (STPlugin pg in this.listPlugins)
+                                        {
+                                            Directory.SetCurrentDirectory(pg.strプラグインフォルダ);
+                                            pg.plugin.OnChangeStage();
+                                            Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
+                                        }
+
+                                        this.tRunGarbageCollector();
+                                        break;
+                                    //-----------------------------
+                                    #endregion
+
+                                    case CStage.EStage.SongSelection:
+                                        #region [ *** ]
+                                        //-----------------------------
+                                        rCurrentStage.OnDeactivate();
+                                        Trace.TraceInformation("----------------------");
+                                        Trace.TraceInformation("■ SongSelection");
+                                        stageSongSelection.OnActivate();
+                                        rPreviousStage = rCurrentStage;
+                                        rCurrentStage = stageSongSelection;
+
+                                        foreach (STPlugin pg in this.listPlugins)
+                                        {
+                                            Directory.SetCurrentDirectory(pg.strプラグインフォルダ);
+                                            pg.plugin.OnChangeStage();
+                                            Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
+                                        }
+
+                                        this.tRunGarbageCollector();
+                                        break;
+                                        //-----------------------------
+                                        #endregion
+                                }
+                            }
+                            //-----------------------------
+                            #endregion
+                            break;
+
+
+                        case CStage.EStage.Config:
+                            #region [ *** ]
+                            //-----------------------------
+                            if (this.nUpdateAndDrawReturnValue != 0)
+                            {
+                                switch (rPreviousStage.eStageID)
+                                {
+                                    case CStage.EStage.Title:
+                                        #region [ *** ]
+                                        //-----------------------------
+                                        rCurrentStage.OnDeactivate();
+                                        Trace.TraceInformation("----------------------");
+                                        Trace.TraceInformation("■ Title");
+                                        stageTitle.OnActivate();
+                                        rPreviousStage = rCurrentStage;
+                                        rCurrentStage = stageTitle;
+
+                                        foreach (STPlugin pg in this.listPlugins)
+                                        {
+                                            Directory.SetCurrentDirectory(pg.strプラグインフォルダ);
+                                            pg.plugin.OnChangeStage();
+                                            Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
+                                        }
+
+                                        this.tRunGarbageCollector();
+                                        break;
+                                    //-----------------------------
+                                    #endregion
+
+                                    case CStage.EStage.SongSelection:
+                                        #region [ *** ]
+                                        //-----------------------------
+                                        rCurrentStage.OnDeactivate();
+                                        Trace.TraceInformation("----------------------");
+                                        Trace.TraceInformation("■ SongSelection");
+                                        stageSongSelection.OnActivate();
+                                        rPreviousStage = rCurrentStage;
+                                        rCurrentStage = stageSongSelection;
+
+                                        foreach (STPlugin pg in this.listPlugins)
+                                        {
+                                            Directory.SetCurrentDirectory(pg.strプラグインフォルダ);
+                                            pg.plugin.OnChangeStage();
+                                            Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
+                                        }
+
+                                        this.tRunGarbageCollector();
+                                        break;
+                                        //-----------------------------
+                                        #endregion
+                                }
+                            }
+                            //-----------------------------
+                            #endregion
+                            break;
+
+                        case CStage.EStage.SongSelection:
+                            #region [ *** ]
+                            //-----------------------------
+                            switch (this.nUpdateAndDrawReturnValue)
+                            {
+                                case (int)CStageSongSelection.EReturnValue.ReturnToTitle:
+                                    #region [ *** ]
+                                    //-----------------------------
+                                    rCurrentStage.OnDeactivate();
+                                    Trace.TraceInformation("----------------------");
+                                    Trace.TraceInformation("■ Title");
+                                    stageTitle.OnActivate();
+                                    rPreviousStage = rCurrentStage;
+                                    rCurrentStage = stageTitle;
+
+                                    foreach (STPlugin pg in this.listPlugins)
+                                    {
+                                        Directory.SetCurrentDirectory(pg.strプラグインフォルダ);
+                                        pg.plugin.OnChangeStage();
+                                        Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
+                                    }
+
+                                    this.tRunGarbageCollector();
+                                    break;
+                                //-----------------------------
                                 #endregion
 
-                                DTX.tStopPlayingAllChips();
-                                DTX.OnDeactivate();
-                                rCurrentStage.OnDeactivate();
-                                if (bCompactMode && !DTXVmode.Enabled && !DTX2WAVmode.Enabled)
-                                {
-                                    base.Window.Close();
-                                }
-                                else if (this.nUpdateAndDrawReturnValue == (int)EPerfScreenReturnValue.Restart)
-                                {
+                                case (int)CStageSongSelection.EReturnValue.Selected:
+                                    #region [ *** ]
+                                    //-----------------------------
+                                    rCurrentStage.OnDeactivate();
                                     Trace.TraceInformation("----------------------");
                                     Trace.TraceInformation("■ SongLoading");
                                     stageSongLoading.OnActivate();
@@ -1317,369 +1068,144 @@ for (int i = 0; i < 3; i++) {
                                     }
 
                                     this.tRunGarbageCollector();
-                                }
-                                else
-                                {
-                                    Trace.TraceInformation("----------------------");
-                                    Trace.TraceInformation("■ SongSelection");
-                                    stageSongSelection.OnActivate();
-                                    rPreviousStage = rCurrentStage;
-                                    rCurrentStage = stageSongSelection;
+                                    break;
+                                //-----------------------------
+                                #endregion
 
-                                    #region [ プラグイン Onステージ変更() の呼び出し ]
-                                    //---------------------
+
+                                case (int)CStageSongSelection.EReturnValue.CallOptions:
+                                    #region [ *** ]
+                                    //-----------------------------
+
+                                    rCurrentStage.OnDeactivate();
+                                    Trace.TraceInformation("----------------------");
+                                    Trace.TraceInformation("■ Option");
+                                    stageOption.OnActivate();
+                                    rPreviousStage = rCurrentStage;
+                                    rCurrentStage = stageOption;
+
                                     foreach (STPlugin pg in this.listPlugins)
                                     {
                                         Directory.SetCurrentDirectory(pg.strプラグインフォルダ);
                                         pg.plugin.OnChangeStage();
                                         Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
                                     }
-                                    //---------------------
-                                    #endregion
 
                                     this.tRunGarbageCollector();
-                                }
-                                break;
-                            //-----------------------------
-                                #endregion
-
-                            case (int)EPerfScreenReturnValue.StageFailure:
-                                #region [ 演奏失敗(StageFailed) ]
+                                    break;
                                 //-----------------------------
-                                {
-                                    //New extract performance record
-                                    CScoreIni.CPerformanceEntry cPerf_Drums, cPerf_Guitar, cPerf_Bass;
-                                    bool bTrainingMode = false;
-                                    CChip[] chipsArray = new CChip[10];
-                                    if (ConfigIni.bGuitarRevolutionMode)
-                                    {
-                                        stagePerfGuitarScreen.tStorePerfResults(out cPerf_Drums, out cPerf_Guitar, out cPerf_Bass, out bTrainingMode);
-                                    }
-                                    else
-                                    {
-                                        stagePerfDrumsScreen.tStorePerfResults(out cPerf_Drums, out cPerf_Guitar, out cPerf_Bass, out chipsArray, out bTrainingMode);
-                                    }
-                                    //Original
-                                    //scoreIni = this.tScoreIniへBGMAdjustとHistoryとPlayCountを更新("Stage failed");
-
-                                    //Save Performance Records if necessary
-                                    if (!bTrainingMode) 
-                                    {
-                                        //Swap if required
-                                        if (CDTXMania.ConfigIni.bIsSwappedGuitarBass)       // #24063 2011.1.24 yyagi Gt/Bsを入れ替えていたなら、演奏結果も入れ替える
-                                        {
-                                            CScoreIni.CPerformanceEntry t;
-                                            t = cPerf_Guitar;
-                                            cPerf_Guitar = cPerf_Bass;
-                                            cPerf_Bass = t;
-                                        }
-
-                                        string strInstrument = "";
-                                        string strPerfSkill = "";
-                                        //STDGBVALUE<string> strCurrProgressBars;
-                                        STDGBVALUE<bool> bToSaveProgressBarRecord;
-                                        bToSaveProgressBarRecord.Drums = false;
-                                        bToSaveProgressBarRecord.Guitar = false;
-                                        bToSaveProgressBarRecord.Bass = false;
-                                        STDGBVALUE<bool> bNewProgressBarRecord;
-                                        bNewProgressBarRecord.Drums = false;
-                                        bNewProgressBarRecord.Guitar = false;
-                                        bNewProgressBarRecord.Bass = false;
-                                        bool bGuitarAndBass = false;
-                                        if (!cPerf_Drums.b全AUTOである && cPerf_Drums.nTotalChipsCount > 0)
-                                        {
-                                            //Drums played
-                                            strInstrument = " Drums";
-                                            bToSaveProgressBarRecord.Drums = true;
-                                        }
-                                        else if (!cPerf_Guitar.b全AUTOである && cPerf_Guitar.nTotalChipsCount > 0)
-                                        {
-                                            if (!cPerf_Bass.b全AUTOである && cPerf_Bass.nTotalChipsCount > 0)
-                                            {
-                                                // Guitar and bass played together
-                                                bGuitarAndBass = true;
-                                                strInstrument = " G+B";
-                                                bToSaveProgressBarRecord.Guitar = true;
-                                                bToSaveProgressBarRecord.Bass = true;
-                                            }
-                                            else 
-                                            {
-                                                // Guitar only played
-                                                strInstrument = " Guitar";
-                                                bToSaveProgressBarRecord.Guitar = true;
-                                            }
-                                            
-                                        }
-                                        else
-                                        {
-                                            //Bass only played
-                                            strInstrument = " Bass";
-                                            bToSaveProgressBarRecord.Bass = true;
-                                        }
-
-                                        string str = "";
-                                        string strSpeed = "";
-                                        if (CDTXMania.ConfigIni.nPlaySpeed != 20)
-                                        {
-                                            double d = (double)(CDTXMania.ConfigIni.nPlaySpeed / 20.0);
-                                            strSpeed = (bGuitarAndBass ? " x" : " Speed x") + d.ToString("0.00");
-                                        }
-                                        str = string.Format("Stage failed{0} {1}", strInstrument, strSpeed);
-
-                                        scoreIni = this.tScoreIniへBGMAdjustとHistoryとPlayCountを更新(str);
-
-                                        CScore cScore = CDTXMania.stageSongSelection.rChosenScore;
-
-                                        if (bToSaveProgressBarRecord.Drums)
-                                        {
-                                            scoreIni.stSection.LastPlayDrums.strProgress = cPerf_Drums.strProgress;
-                                            
-                                            if(CScoreIni.tCheckIfUpdateProgressBarRecordOrNot(cScore.SongInformation.progress.Drums, cPerf_Drums.strProgress))
-                                            {
-                                                scoreIni.stSection.HiSkillDrums.strProgress = cPerf_Drums.strProgress;
-                                                bNewProgressBarRecord.Drums = true;
-                                            }
-                                        }
-                                        if (bToSaveProgressBarRecord.Guitar)
-                                        {
-                                            scoreIni.stSection.LastPlayGuitar.strProgress = cPerf_Guitar.strProgress;
-                                            if (CScoreIni.tCheckIfUpdateProgressBarRecordOrNot(cScore.SongInformation.progress.Guitar, cPerf_Guitar.strProgress))
-                                            {
-                                                scoreIni.stSection.HiSkillGuitar.strProgress = cPerf_Guitar.strProgress;
-                                                bNewProgressBarRecord.Guitar = true;
-                                            }
-                                        }
-                                        if (bToSaveProgressBarRecord.Bass)
-                                        {
-                                            scoreIni.stSection.LastPlayBass.strProgress = cPerf_Bass.strProgress;
-                                            if (CScoreIni.tCheckIfUpdateProgressBarRecordOrNot(cScore.SongInformation.progress.Bass, cPerf_Bass.strProgress))
-                                            {
-                                                scoreIni.stSection.HiSkillBass.strProgress = cPerf_Bass.strProgress;
-                                                bNewProgressBarRecord.Bass = true;
-                                            }
-                                        }
-
-                                        scoreIni.tExport(DTX.strファイル名の絶対パス + ".score.ini");
-
-                                        if (!CDTXMania.bCompactMode)
-                                        {                                            
-                                            bool[] b更新が必要か否か = new bool[3];
-                                            CScoreIni.tGetIsUpdateNeeded(out b更新が必要か否か[0], out b更新が必要か否か[1], out b更新が必要か否か[2]);
-                                            if (bNewProgressBarRecord.Drums)
-                                            {
-                                                // New Song Progress
-                                                cScore.SongInformation.progress.Drums = cPerf_Drums.strProgress;
-                                            }
-                                            if (bNewProgressBarRecord.Guitar)
-                                            {
-                                                // New Song Progress
-                                                cScore.SongInformation.progress.Guitar = cPerf_Guitar.strProgress;
-                                            }
-                                            if (bNewProgressBarRecord.Bass)
-                                            {
-                                                // New Song Progress
-                                                cScore.SongInformation.progress.Bass = cPerf_Bass.strProgress;
-                                            }
-                                        }
-                                    }
-                                    
-                                }
-
-                                #region [ プラグイン On演奏失敗() の呼び出し ]
-                                //---------------------
-                                foreach (STPlugin pg in this.listPlugins)
-                                {
-                                    Directory.SetCurrentDirectory(pg.strプラグインフォルダ);
-                                    pg.plugin.On演奏失敗(scoreIni);
-                                    Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
-                                }
-                                //---------------------
                                 #endregion
 
-                                DTX.tStopPlayingAllChips();
-                                DTX.OnDeactivate();
-                                rCurrentStage.OnDeactivate();
-                                if (bCompactMode)
-                                {
-                                    base.Window.Close();
-                                }
-                                else
-                                {
+                                case (int)CStageSongSelection.EReturnValue.CallConfig:
+                                    #region [ *** ]
+                                    //-----------------------------
+                                    rCurrentStage.OnDeactivate();
                                     Trace.TraceInformation("----------------------");
-                                    Trace.TraceInformation("■ SongSelection");
-                                    stageSongSelection.OnActivate();
+                                    Trace.TraceInformation("■ Config");
+                                    stageConfig.OnActivate();
                                     rPreviousStage = rCurrentStage;
-                                    rCurrentStage = stageSongSelection;
+                                    rCurrentStage = stageConfig;
 
-                                    #region [ プラグイン Onステージ変更() の呼び出し ]
-                                    //---------------------
                                     foreach (STPlugin pg in this.listPlugins)
                                     {
                                         Directory.SetCurrentDirectory(pg.strプラグインフォルダ);
                                         pg.plugin.OnChangeStage();
                                         Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
                                     }
-                                    //---------------------
-                                    #endregion
 
                                     this.tRunGarbageCollector();
-                                }
-                                break;
-                            //-----------------------------
-                                #endregion
-
-                            case (int)EPerfScreenReturnValue.StageClear:
-                                #region [ 演奏クリア ]
+                                    break;
                                 //-----------------------------
-                                CScoreIni.CPerformanceEntry cPerfEntry_Drums, cPerfEntry_Guitar, cPerfEntry_Bass;
-                                bool bIsTrainingMode = false;
-                                CChip[] chipArray = new CChip[10];
-                                if (ConfigIni.bGuitarRevolutionMode)
-                                {
-                                    stagePerfGuitarScreen.tStorePerfResults(out cPerfEntry_Drums, out cPerfEntry_Guitar, out cPerfEntry_Bass, out bIsTrainingMode);
-                                    //Transfer nTimingHitCount to stageResult
-                                    stageResult.nTimingHitCount = stagePerfGuitarScreen.nTimingHitCount;
-                                }
-                                else
-                                {
-                                    stagePerfDrumsScreen.tStorePerfResults(out cPerfEntry_Drums, out cPerfEntry_Guitar, out cPerfEntry_Bass, out chipArray, out bIsTrainingMode);
-                                    //Transfer nTimingHitCount to stageResult
-                                    stageResult.nTimingHitCount = stagePerfDrumsScreen.nTimingHitCount;
-                                }
-
-                                if (!bIsTrainingMode)
-                                {
-                                    if (CDTXMania.ConfigIni.bIsSwappedGuitarBass)		// #24063 2011.1.24 yyagi Gt/Bsを入れ替えていたなら、演奏結果も入れ替える
-                                    {
-                                        CScoreIni.CPerformanceEntry t;
-                                        t = cPerfEntry_Guitar;
-                                        cPerfEntry_Guitar = cPerfEntry_Bass;
-                                        cPerfEntry_Bass = t;
-
-                                        CDTXMania.DTX.SwapGuitarBassInfos();			// 譜面情報も元に戻す
-                                        CDTXMania.ConfigIni.SwapGuitarBassInfos_AutoFlags(); // #24415 2011.2.27 yyagi
-                                        // リザルト集計時のみ、Auto系のフラグも元に戻す。
-                                        // これを戻すのは、リザルト集計後。
-                                    }													// "case CStage.EStage.Result:"のところ。
-
-                                    double ps = 0.0;
-                                    int nRank = 0;
-                                    string strInstrument = "";
-                                    string strPerfSkill = "";
-                                    bool bGuitarAndBass = false;
-                                    if (!cPerfEntry_Drums.b全AUTOである && cPerfEntry_Drums.nTotalChipsCount > 0)
-                                    {
-                                        //Drums played
-                                        strPerfSkill = String.Format(" {0:F2}", cPerfEntry_Drums.dbPerformanceSkill);
-                                        nRank = (CDTXMania.ConfigIni.nSkillMode == 0) ? CScoreIni.tCalculateRankOld(cPerfEntry_Drums) : CScoreIni.tCalculateRank(0, cPerfEntry_Drums.dbPerformanceSkill);
-                                    }
-                                    else if (!cPerfEntry_Guitar.b全AUTOである && cPerfEntry_Guitar.nTotalChipsCount > 0)
-                                    {
-                                        if (!cPerfEntry_Bass.b全AUTOである && cPerfEntry_Bass.nTotalChipsCount > 0)
-                                        {
-                                            // Guitar and bass played together
-                                            bGuitarAndBass = true;
-                                            strPerfSkill = String.Format("{0:F2}/{1:F2}", cPerfEntry_Guitar.dbPerformanceSkill, cPerfEntry_Bass.dbPerformanceSkill);
-                                            nRank = CScoreIni.tCalculateOverallRankValue(cPerfEntry_Drums, cPerfEntry_Guitar, cPerfEntry_Bass);
-                                            strInstrument = " G+B";
-                                        }
-                                        else 
-                                        {
-                                            // Guitar only played
-                                            strPerfSkill = String.Format(" {0:F2}", cPerfEntry_Guitar.dbPerformanceSkill);
-                                            nRank = (CDTXMania.ConfigIni.nSkillMode == 0) ? CScoreIni.tCalculateRankOld(cPerfEntry_Guitar) : CScoreIni.tCalculateRank(0, cPerfEntry_Guitar.dbPerformanceSkill);
-                                            strInstrument = " Guitar";
-                                        }                                        
-                                    }
-                                    else
-                                    {
-                                        //Bass only played
-                                        strPerfSkill = String.Format(" {0:F2}", cPerfEntry_Bass.dbPerformanceSkill);
-                                        nRank = (CDTXMania.ConfigIni.nSkillMode == 0) ? CScoreIni.tCalculateRankOld(cPerfEntry_Bass) : CScoreIni.tCalculateRank(0, cPerfEntry_Bass.dbPerformanceSkill);
-                                        strInstrument = " Bass";
-                                    }
-
-                                    string str = "";
-                                    if (nRank == (int)CScoreIni.ERANK.UNKNOWN)
-                                    {
-                                        str = "Cleared (No chips)";
-                                    }
-                                    else
-                                    {
-                                        string strSpeed = "";
-                                        if (CDTXMania.ConfigIni.nPlaySpeed != 20)
-                                        {
-                                            double d = (double)(CDTXMania.ConfigIni.nPlaySpeed / 20.0);
-                                            strSpeed = (bGuitarAndBass ? " x" : " Speed x") + d.ToString("0.00");
-                                        }
-                                        str = string.Format("Cleared{0} ({1}:{2}{3})", strInstrument, Enum.GetName(typeof(CScoreIni.ERANK), nRank), strPerfSkill, strSpeed);
-                                    }
-                                    
-                                    scoreIni = this.tScoreIniへBGMAdjustとHistoryとPlayCountを更新(str);
-                                }
-
-                                #region [ プラグイン On演奏クリア() の呼び出し ]
-                                //---------------------
-                                foreach (STPlugin pg in this.listPlugins)
-                                {
-                                    Directory.SetCurrentDirectory(pg.strプラグインフォルダ);
-                                    pg.plugin.On演奏クリア(scoreIni);
-                                    Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
-                                }
-                                //---------------------
                                 #endregion
 
-                                rCurrentStage.OnDeactivate();
-                                Trace.TraceInformation("----------------------");
-                                Trace.TraceInformation("■ Result");
-                                stageResult.stPerformanceEntry.Drums = cPerfEntry_Drums;
-                                stageResult.stPerformanceEntry.Guitar = cPerfEntry_Guitar;
-                                stageResult.stPerformanceEntry.Bass = cPerfEntry_Bass;
-                                stageResult.rEmptyDrumChip = chipArray;
-                                stageResult.bIsTrainingMode = bIsTrainingMode;
-                                stageResult.OnActivate();
-                                rPreviousStage = rCurrentStage;
-                                rCurrentStage = stageResult;
+                                case (int)CStageSongSelection.EReturnValue.ChangeSking:
 
-                                #region [ プラグイン Onステージ変更() の呼び出し ]
-                                //---------------------
-                                foreach (STPlugin pg in this.listPlugins)
-                                {
-                                    Directory.SetCurrentDirectory(pg.strプラグインフォルダ);
-                                    pg.plugin.OnChangeStage();
-                                    Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
-                                }
-                                //---------------------
-                                #endregion
-
-                                break;
-                            //-----------------------------
-                                #endregion
-                        }
-                        //-----------------------------
-                        #endregion
-                        break;
-
-                    case CStage.EStage.Result:
-                        #region [ *** ]
-                        //-----------------------------
-                        if (this.nUpdateAndDrawReturnValue != 0)
-                        {
-                            if (CDTXMania.ConfigIni.bIsSwappedGuitarBass)		// #24415 2011.2.27 yyagi Gt/Bsを入れ替えていたなら、Auto状態をリザルト画面終了後に元に戻す
-                            {
-                                CDTXMania.ConfigIni.SwapGuitarBassInfos_AutoFlags(); // Auto入れ替え
+                                    #region [ *** ]
+                                    //-----------------------------
+                                    rCurrentStage.OnDeactivate();
+                                    Trace.TraceInformation("----------------------");
+                                    Trace.TraceInformation("■ スキン切り替え");
+                                    stageChangeSkin.OnActivate();
+                                    rPreviousStage = rCurrentStage;
+                                    rCurrentStage = stageChangeSkin;
+                                    break;
+                                    //-----------------------------
+                                    #endregion
                             }
+                            //-----------------------------
+                            #endregion
+                            break;
 
-                            DTX.tPausePlaybackForAllChips();
-                            DTX.OnDeactivate();
-                            rCurrentStage.OnDeactivate();
-                            if (!bCompactMode)
+                        case CStage.EStage.SongLoading:
+                            #region [ *** ]
+                            //-----------------------------
+                            if (this.nUpdateAndDrawReturnValue != 0)
                             {
-                                Trace.TraceInformation("----------------------");
-                                Trace.TraceInformation("■ SongSelection");
-                                stageSongSelection.OnActivate();
-                                rPreviousStage = rCurrentStage;
-                                rCurrentStage = stageSongSelection;
+                                CDTXMania.Pad.stDetectedDevice.Clear(); // 入力デバイスフラグクリア(2010.9.11)
+
+                                rCurrentStage.OnDeactivate();
+
+                                #region [ ESC押下時は、曲の読み込みを中止して選曲画面に戻る ]
+                                if (this.nUpdateAndDrawReturnValue == (int)ESongLoadingScreenReturnValue.LoadingStopped)
+                                {
+                                    //DTX.tStopPlayingAllChips();
+                                    DTX.OnDeactivate();
+                                    Trace.TraceInformation("曲の読み込みを中止しました。");
+                                    this.tRunGarbageCollector();
+                                    Trace.TraceInformation("----------------------");
+                                    Trace.TraceInformation("■ SongSelection");
+                                    stageSongSelection.OnActivate();
+                                    rPreviousStage = rCurrentStage;
+                                    rCurrentStage = stageSongSelection;
+                                    foreach (STPlugin pg in this.listPlugins)
+                                    {
+                                        Directory.SetCurrentDirectory(pg.strプラグインフォルダ);
+                                        pg.plugin.OnChangeStage();
+                                        Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
+                                    }
+                                    break;
+                                }
+                                #endregion
+
+
+                                if (!ConfigIni.bGuitarRevolutionMode)
+                                {
+                                    Trace.TraceInformation("----------------------");
+                                    Trace.TraceInformation("■ Playing（ドラム画面）");
+#if false        // #23625 2011.1.11 Config.iniからダメージ/回復値の定数変更を行う場合はここを有効にする 087リリースに合わせ機能無効化                                                                                   
+for (int i = 0; i < 5; i++)
+{
+	for (int j = 0; j < 2; j++)
+	{
+		stage演奏ドラム画面.fDamageGaugeDelta[i, j] = ConfigIni.fGaugeFactor[i, j];
+	}
+}
+for (int i = 0; i < 3; i++) {
+	stage演奏ドラム画面.fDamageLevelFactor[i] = ConfigIni.fDamageLevelFactor[i];
+}		
+#endif
+                                    rPreviousStage = rCurrentStage;
+                                    rCurrentStage = stagePerfDrumsScreen;
+                                }
+                                else
+                                {
+                                    Trace.TraceInformation("----------------------");
+                                    Trace.TraceInformation("■ Playing（ギター画面）");
+#if false        // #23625 2011.1.11 Config.iniからダメージ/回復値の定数変更を行う場合はここを有効にする 087リリースに合わせ機能無効化                                                                                   
+for (int i = 0; i < 5; i++)
+{
+	for (int j = 0; j < 2; j++)
+	{
+		stage演奏ギター画面.fDamageGaugeDelta[i, j] = ConfigIni.fGaugeFactor[i, j];
+	}
+}
+for (int i = 0; i < 3; i++) {
+	stage演奏ギター画面.fDamageLevelFactor[i] = ConfigIni.fDamageLevelFactor[i];
+}		
+#endif
+                                    rPreviousStage = rCurrentStage;
+                                    rCurrentStage = stagePerfGuitarScreen;
+                                }
 
                                 foreach (STPlugin pg in this.listPlugins)
                                 {
@@ -1690,73 +1216,550 @@ for (int i = 0; i < 3; i++) {
 
                                 this.tRunGarbageCollector();
                             }
-                            else
+                            //-----------------------------
+                            #endregion
+                            break;
+
+                        case CStage.EStage.Playing:
+                            #region [ *** ]
+                            //-----------------------------
+                            #region [ DTXVモード中にDTXCreatorから指示を受けた場合の処理 ]
+                            if (DTXVmode.Enabled && DTXVmode.Refreshed)
                             {
-                                base.Window.Close();
+                                DTXVmode.Refreshed = false;
+
+                                if (DTXVmode.Command == CDTXVmode.ECommand.Stop)
+                                {
+                                    ((CStagePerfCommonScreen)rCurrentStage).t停止();
+
+                                    //if (previewSound != null)
+                                    //{
+                                    //    this.previewSound.tサウンドを停止する();
+                                    //    this.previewSound.Dispose();
+                                    //    this.previewSound = null;
+                                    //}
+                                }
+                                else if (DTXVmode.Command == CDTXVmode.ECommand.Play)
+                                {
+                                    if (DTXVmode.NeedReload)
+                                    {
+                                        ((CStagePerfCommonScreen)rCurrentStage).t再読込();
+                                        if (DTXVmode.GRmode)
+                                        {
+                                            CDTXMania.ConfigIni.bDrumsEnabled = false;
+                                            CDTXMania.ConfigIni.bGuitarEnabled = true;
+                                        }
+                                        else
+                                        {
+                                            //Both in Original DTXMania, but we don't support that
+                                            CDTXMania.ConfigIni.bDrumsEnabled = true;
+                                            CDTXMania.ConfigIni.bGuitarEnabled = false;
+                                        }
+                                        CDTXMania.ConfigIni.bTimeStretch = DTXVmode.TimeStretch;
+                                        CSoundManager.bIsTimeStretch = DTXVmode.TimeStretch;
+                                        if (CDTXMania.ConfigIni.bVerticalSyncWait != DTXVmode.VSyncWait)
+                                        {
+                                            CDTXMania.ConfigIni.bVerticalSyncWait = DTXVmode.VSyncWait;
+                                            //CDTXMania.b次のタイミングで垂直帰線同期切り替えを行う = true;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        ((CStagePerfCommonScreen)rCurrentStage).tJumpInSongToBar(CDTXMania.DTXVmode.nStartBar);
+                                    }
+                                }
                             }
-                        }
-                        //-----------------------------
-                        #endregion
-                        break;
+                            #endregion
 
-                    case CStage.EStage.ChangeSkin:
-                        #region [ *** ]
-                        //-----------------------------
-                        if (this.nUpdateAndDrawReturnValue != 0)
-                        {
-                            rCurrentStage.OnDeactivate();
-                            Trace.TraceInformation("----------------------");
-                            Trace.TraceInformation("■ SongSelection");
-                            stageSongSelection.OnActivate();
-                            rPreviousStage = rCurrentStage;
-                            rCurrentStage = stageSongSelection;
-                            this.tRunGarbageCollector();
-                        }
-                        //-----------------------------
-                        #endregion
-                        break;
+                            switch (this.nUpdateAndDrawReturnValue)
+                            {
+                                case (int)EPerfScreenReturnValue.Continue:
+                                    break;
 
-                    case CStage.EStage.End:
-                        #region [ *** ]
-                        //-----------------------------
-                        if (this.nUpdateAndDrawReturnValue != 0)
-                        {
-                            base.Exit();
-                        }
-                        //-----------------------------
-                        #endregion
-                        break;
+                                case (int)EPerfScreenReturnValue.Interruption:
+                                case (int)EPerfScreenReturnValue.Restart:
+                                    #region [ Cancel performance ]
+                                    //-----------------------------
+                                    if (!DTXVmode.Enabled && !DTX2WAVmode.Enabled)
+                                    {
+                                        scoreIni = this.tScoreIniへBGMAdjustとHistoryとPlayCountを更新("Play cancelled");
+                                    }
+
+                                    #region [ プラグイン On演奏キャンセル() の呼び出し ]
+                                    //---------------------
+                                    foreach (STPlugin pg in this.listPlugins)
+                                    {
+                                        Directory.SetCurrentDirectory(pg.strプラグインフォルダ);
+                                        pg.plugin.On演奏キャンセル(scoreIni);
+                                        Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
+                                    }
+                                    //---------------------
+                                    #endregion
+
+                                    DTX.tStopPlayingAllChips();
+                                    DTX.OnDeactivate();
+                                    rCurrentStage.OnDeactivate();
+                                    if (bCompactMode && !DTXVmode.Enabled && !DTX2WAVmode.Enabled)
+                                    {
+                                        base.Window.Close();
+                                    }
+                                    else if (this.nUpdateAndDrawReturnValue == (int)EPerfScreenReturnValue.Restart)
+                                    {
+                                        Trace.TraceInformation("----------------------");
+                                        Trace.TraceInformation("■ SongLoading");
+                                        stageSongLoading.OnActivate();
+                                        rPreviousStage = rCurrentStage;
+                                        rCurrentStage = stageSongLoading;
+
+                                        foreach (STPlugin pg in this.listPlugins)
+                                        {
+                                            Directory.SetCurrentDirectory(pg.strプラグインフォルダ);
+                                            pg.plugin.OnChangeStage();
+                                            Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
+                                        }
+
+                                        this.tRunGarbageCollector();
+                                    }
+                                    else
+                                    {
+                                        Trace.TraceInformation("----------------------");
+                                        Trace.TraceInformation("■ SongSelection");
+                                        stageSongSelection.OnActivate();
+                                        rPreviousStage = rCurrentStage;
+                                        rCurrentStage = stageSongSelection;
+
+                                        #region [ プラグイン Onステージ変更() の呼び出し ]
+                                        //---------------------
+                                        foreach (STPlugin pg in this.listPlugins)
+                                        {
+                                            Directory.SetCurrentDirectory(pg.strプラグインフォルダ);
+                                            pg.plugin.OnChangeStage();
+                                            Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
+                                        }
+                                        //---------------------
+                                        #endregion
+
+                                        this.tRunGarbageCollector();
+                                    }
+                                    break;
+                                //-----------------------------
+                                #endregion
+
+                                case (int)EPerfScreenReturnValue.StageFailure:
+                                    #region [ 演奏失敗(StageFailed) ]
+                                    //-----------------------------
+                                    {
+                                        //New extract performance record
+                                        CScoreIni.CPerformanceEntry cPerf_Drums, cPerf_Guitar, cPerf_Bass;
+                                        bool bTrainingMode = false;
+                                        CChip[] chipsArray = new CChip[10];
+                                        if (ConfigIni.bGuitarRevolutionMode)
+                                        {
+                                            stagePerfGuitarScreen.tStorePerfResults(out cPerf_Drums, out cPerf_Guitar, out cPerf_Bass, out bTrainingMode);
+                                        }
+                                        else
+                                        {
+                                            stagePerfDrumsScreen.tStorePerfResults(out cPerf_Drums, out cPerf_Guitar, out cPerf_Bass, out chipsArray, out bTrainingMode);
+                                        }
+                                        //Original
+                                        //scoreIni = this.tScoreIniへBGMAdjustとHistoryとPlayCountを更新("Stage failed");
+
+                                        //Save Performance Records if necessary
+                                        if (!bTrainingMode)
+                                        {
+                                            //Swap if required
+                                            if (CDTXMania.ConfigIni.bIsSwappedGuitarBass)       // #24063 2011.1.24 yyagi Gt/Bsを入れ替えていたなら、演奏結果も入れ替える
+                                            {
+                                                CScoreIni.CPerformanceEntry t;
+                                                t = cPerf_Guitar;
+                                                cPerf_Guitar = cPerf_Bass;
+                                                cPerf_Bass = t;
+                                            }
+
+                                            string strInstrument = "";
+                                            string strPerfSkill = "";
+                                            //STDGBVALUE<string> strCurrProgressBars;
+                                            STDGBVALUE<bool> bToSaveProgressBarRecord;
+                                            bToSaveProgressBarRecord.Drums = false;
+                                            bToSaveProgressBarRecord.Guitar = false;
+                                            bToSaveProgressBarRecord.Bass = false;
+                                            STDGBVALUE<bool> bNewProgressBarRecord;
+                                            bNewProgressBarRecord.Drums = false;
+                                            bNewProgressBarRecord.Guitar = false;
+                                            bNewProgressBarRecord.Bass = false;
+                                            bool bGuitarAndBass = false;
+                                            if (!cPerf_Drums.b全AUTOである && cPerf_Drums.nTotalChipsCount > 0)
+                                            {
+                                                //Drums played
+                                                strInstrument = " Drums";
+                                                bToSaveProgressBarRecord.Drums = true;
+                                            }
+                                            else if (!cPerf_Guitar.b全AUTOである && cPerf_Guitar.nTotalChipsCount > 0)
+                                            {
+                                                if (!cPerf_Bass.b全AUTOである && cPerf_Bass.nTotalChipsCount > 0)
+                                                {
+                                                    // Guitar and bass played together
+                                                    bGuitarAndBass = true;
+                                                    strInstrument = " G+B";
+                                                    bToSaveProgressBarRecord.Guitar = true;
+                                                    bToSaveProgressBarRecord.Bass = true;
+                                                }
+                                                else
+                                                {
+                                                    // Guitar only played
+                                                    strInstrument = " Guitar";
+                                                    bToSaveProgressBarRecord.Guitar = true;
+                                                }
+
+                                            }
+                                            else
+                                            {
+                                                //Bass only played
+                                                strInstrument = " Bass";
+                                                bToSaveProgressBarRecord.Bass = true;
+                                            }
+
+                                            string str = "";
+                                            string strSpeed = "";
+                                            if (CDTXMania.ConfigIni.nPlaySpeed != 20)
+                                            {
+                                                double d = (double)(CDTXMania.ConfigIni.nPlaySpeed / 20.0);
+                                                strSpeed = (bGuitarAndBass ? " x" : " Speed x") + d.ToString("0.00");
+                                            }
+                                            str = string.Format("Stage failed{0} {1}", strInstrument, strSpeed);
+
+                                            scoreIni = this.tScoreIniへBGMAdjustとHistoryとPlayCountを更新(str);
+
+                                            CScore cScore = CDTXMania.stageSongSelection.rChosenScore;
+
+                                            if (bToSaveProgressBarRecord.Drums)
+                                            {
+                                                scoreIni.stSection.LastPlayDrums.strProgress = cPerf_Drums.strProgress;
+
+                                                if (CScoreIni.tCheckIfUpdateProgressBarRecordOrNot(cScore.SongInformation.progress.Drums, cPerf_Drums.strProgress))
+                                                {
+                                                    scoreIni.stSection.HiSkillDrums.strProgress = cPerf_Drums.strProgress;
+                                                    bNewProgressBarRecord.Drums = true;
+                                                }
+                                            }
+                                            if (bToSaveProgressBarRecord.Guitar)
+                                            {
+                                                scoreIni.stSection.LastPlayGuitar.strProgress = cPerf_Guitar.strProgress;
+                                                if (CScoreIni.tCheckIfUpdateProgressBarRecordOrNot(cScore.SongInformation.progress.Guitar, cPerf_Guitar.strProgress))
+                                                {
+                                                    scoreIni.stSection.HiSkillGuitar.strProgress = cPerf_Guitar.strProgress;
+                                                    bNewProgressBarRecord.Guitar = true;
+                                                }
+                                            }
+                                            if (bToSaveProgressBarRecord.Bass)
+                                            {
+                                                scoreIni.stSection.LastPlayBass.strProgress = cPerf_Bass.strProgress;
+                                                if (CScoreIni.tCheckIfUpdateProgressBarRecordOrNot(cScore.SongInformation.progress.Bass, cPerf_Bass.strProgress))
+                                                {
+                                                    scoreIni.stSection.HiSkillBass.strProgress = cPerf_Bass.strProgress;
+                                                    bNewProgressBarRecord.Bass = true;
+                                                }
+                                            }
+
+                                            scoreIni.tExport(DTX.strファイル名の絶対パス + ".score.ini");
+
+                                            if (!CDTXMania.bCompactMode)
+                                            {
+                                                bool[] b更新が必要か否か = new bool[3];
+                                                CScoreIni.tGetIsUpdateNeeded(out b更新が必要か否か[0], out b更新が必要か否か[1], out b更新が必要か否か[2]);
+                                                if (bNewProgressBarRecord.Drums)
+                                                {
+                                                    // New Song Progress
+                                                    cScore.SongInformation.progress.Drums = cPerf_Drums.strProgress;
+                                                }
+                                                if (bNewProgressBarRecord.Guitar)
+                                                {
+                                                    // New Song Progress
+                                                    cScore.SongInformation.progress.Guitar = cPerf_Guitar.strProgress;
+                                                }
+                                                if (bNewProgressBarRecord.Bass)
+                                                {
+                                                    // New Song Progress
+                                                    cScore.SongInformation.progress.Bass = cPerf_Bass.strProgress;
+                                                }
+                                            }
+                                        }
+
+                                    }
+
+                                    #region [ プラグイン On演奏失敗() の呼び出し ]
+                                    //---------------------
+                                    foreach (STPlugin pg in this.listPlugins)
+                                    {
+                                        Directory.SetCurrentDirectory(pg.strプラグインフォルダ);
+                                        pg.plugin.On演奏失敗(scoreIni);
+                                        Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
+                                    }
+                                    //---------------------
+                                    #endregion
+
+                                    DTX.tStopPlayingAllChips();
+                                    DTX.OnDeactivate();
+                                    rCurrentStage.OnDeactivate();
+                                    if (bCompactMode)
+                                    {
+                                        base.Window.Close();
+                                    }
+                                    else
+                                    {
+                                        Trace.TraceInformation("----------------------");
+                                        Trace.TraceInformation("■ SongSelection");
+                                        stageSongSelection.OnActivate();
+                                        rPreviousStage = rCurrentStage;
+                                        rCurrentStage = stageSongSelection;
+
+                                        #region [ プラグイン Onステージ変更() の呼び出し ]
+                                        //---------------------
+                                        foreach (STPlugin pg in this.listPlugins)
+                                        {
+                                            Directory.SetCurrentDirectory(pg.strプラグインフォルダ);
+                                            pg.plugin.OnChangeStage();
+                                            Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
+                                        }
+                                        //---------------------
+                                        #endregion
+
+                                        this.tRunGarbageCollector();
+                                    }
+                                    break;
+                                //-----------------------------
+                                #endregion
+
+                                case (int)EPerfScreenReturnValue.StageClear:
+                                    #region [ 演奏クリア ]
+                                    //-----------------------------
+                                    CScoreIni.CPerformanceEntry cPerfEntry_Drums, cPerfEntry_Guitar, cPerfEntry_Bass;
+                                    bool bIsTrainingMode = false;
+                                    CChip[] chipArray = new CChip[10];
+                                    if (ConfigIni.bGuitarRevolutionMode)
+                                    {
+                                        stagePerfGuitarScreen.tStorePerfResults(out cPerfEntry_Drums, out cPerfEntry_Guitar, out cPerfEntry_Bass, out bIsTrainingMode);
+                                        //Transfer nTimingHitCount to stageResult
+                                        stageResult.nTimingHitCount = stagePerfGuitarScreen.nTimingHitCount;
+                                    }
+                                    else
+                                    {
+                                        stagePerfDrumsScreen.tStorePerfResults(out cPerfEntry_Drums, out cPerfEntry_Guitar, out cPerfEntry_Bass, out chipArray, out bIsTrainingMode);
+                                        //Transfer nTimingHitCount to stageResult
+                                        stageResult.nTimingHitCount = stagePerfDrumsScreen.nTimingHitCount;
+                                    }
+
+                                    if (!bIsTrainingMode)
+                                    {
+                                        if (CDTXMania.ConfigIni.bIsSwappedGuitarBass)       // #24063 2011.1.24 yyagi Gt/Bsを入れ替えていたなら、演奏結果も入れ替える
+                                        {
+                                            CScoreIni.CPerformanceEntry t;
+                                            t = cPerfEntry_Guitar;
+                                            cPerfEntry_Guitar = cPerfEntry_Bass;
+                                            cPerfEntry_Bass = t;
+
+                                            CDTXMania.DTX.SwapGuitarBassInfos();            // 譜面情報も元に戻す
+                                            CDTXMania.ConfigIni.SwapGuitarBassInfos_AutoFlags(); // #24415 2011.2.27 yyagi
+                                                                                                 // リザルト集計時のみ、Auto系のフラグも元に戻す。
+                                                                                                 // これを戻すのは、リザルト集計後。
+                                        }                                                   // "case CStage.EStage.Result:"のところ。
+
+                                        double ps = 0.0;
+                                        int nRank = 0;
+                                        string strInstrument = "";
+                                        string strPerfSkill = "";
+                                        bool bGuitarAndBass = false;
+                                        if (!cPerfEntry_Drums.b全AUTOである && cPerfEntry_Drums.nTotalChipsCount > 0)
+                                        {
+                                            //Drums played
+                                            strPerfSkill = String.Format(" {0:F2}", cPerfEntry_Drums.dbPerformanceSkill);
+                                            nRank = (CDTXMania.ConfigIni.nSkillMode == 0) ? CScoreIni.tCalculateRankOld(cPerfEntry_Drums) : CScoreIni.tCalculateRank(0, cPerfEntry_Drums.dbPerformanceSkill);
+                                        }
+                                        else if (!cPerfEntry_Guitar.b全AUTOである && cPerfEntry_Guitar.nTotalChipsCount > 0)
+                                        {
+                                            if (!cPerfEntry_Bass.b全AUTOである && cPerfEntry_Bass.nTotalChipsCount > 0)
+                                            {
+                                                // Guitar and bass played together
+                                                bGuitarAndBass = true;
+                                                strPerfSkill = String.Format("{0:F2}/{1:F2}", cPerfEntry_Guitar.dbPerformanceSkill, cPerfEntry_Bass.dbPerformanceSkill);
+                                                nRank = CScoreIni.tCalculateOverallRankValue(cPerfEntry_Drums, cPerfEntry_Guitar, cPerfEntry_Bass);
+                                                strInstrument = " G+B";
+                                            }
+                                            else
+                                            {
+                                                // Guitar only played
+                                                strPerfSkill = String.Format(" {0:F2}", cPerfEntry_Guitar.dbPerformanceSkill);
+                                                nRank = (CDTXMania.ConfigIni.nSkillMode == 0) ? CScoreIni.tCalculateRankOld(cPerfEntry_Guitar) : CScoreIni.tCalculateRank(0, cPerfEntry_Guitar.dbPerformanceSkill);
+                                                strInstrument = " Guitar";
+                                            }
+                                        }
+                                        else
+                                        {
+                                            //Bass only played
+                                            strPerfSkill = String.Format(" {0:F2}", cPerfEntry_Bass.dbPerformanceSkill);
+                                            nRank = (CDTXMania.ConfigIni.nSkillMode == 0) ? CScoreIni.tCalculateRankOld(cPerfEntry_Bass) : CScoreIni.tCalculateRank(0, cPerfEntry_Bass.dbPerformanceSkill);
+                                            strInstrument = " Bass";
+                                        }
+
+                                        string str = "";
+                                        if (nRank == (int)CScoreIni.ERANK.UNKNOWN)
+                                        {
+                                            str = "Cleared (No chips)";
+                                        }
+                                        else
+                                        {
+                                            string strSpeed = "";
+                                            if (CDTXMania.ConfigIni.nPlaySpeed != 20)
+                                            {
+                                                double d = (double)(CDTXMania.ConfigIni.nPlaySpeed / 20.0);
+                                                strSpeed = (bGuitarAndBass ? " x" : " Speed x") + d.ToString("0.00");
+                                            }
+                                            str = string.Format("Cleared{0} ({1}:{2}{3})", strInstrument, Enum.GetName(typeof(CScoreIni.ERANK), nRank), strPerfSkill, strSpeed);
+                                        }
+
+                                        scoreIni = this.tScoreIniへBGMAdjustとHistoryとPlayCountを更新(str);
+                                    }
+
+                                    #region [ プラグイン On演奏クリア() の呼び出し ]
+                                    //---------------------
+                                    foreach (STPlugin pg in this.listPlugins)
+                                    {
+                                        Directory.SetCurrentDirectory(pg.strプラグインフォルダ);
+                                        pg.plugin.On演奏クリア(scoreIni);
+                                        Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
+                                    }
+                                    //---------------------
+                                    #endregion
+
+                                    rCurrentStage.OnDeactivate();
+                                    Trace.TraceInformation("----------------------");
+                                    Trace.TraceInformation("■ Result");
+                                    stageResult.stPerformanceEntry.Drums = cPerfEntry_Drums;
+                                    stageResult.stPerformanceEntry.Guitar = cPerfEntry_Guitar;
+                                    stageResult.stPerformanceEntry.Bass = cPerfEntry_Bass;
+                                    stageResult.rEmptyDrumChip = chipArray;
+                                    stageResult.bIsTrainingMode = bIsTrainingMode;
+                                    stageResult.OnActivate();
+                                    rPreviousStage = rCurrentStage;
+                                    rCurrentStage = stageResult;
+
+                                    #region [ プラグイン Onステージ変更() の呼び出し ]
+                                    //---------------------
+                                    foreach (STPlugin pg in this.listPlugins)
+                                    {
+                                        Directory.SetCurrentDirectory(pg.strプラグインフォルダ);
+                                        pg.plugin.OnChangeStage();
+                                        Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
+                                    }
+                                    //---------------------
+                                    #endregion
+
+                                    break;
+                                    //-----------------------------
+                                    #endregion
+                            }
+                            //-----------------------------
+                            #endregion
+                            break;
+
+                        case CStage.EStage.Result:
+                            #region [ *** ]
+                            //-----------------------------
+                            if (this.nUpdateAndDrawReturnValue != 0)
+                            {
+                                if (CDTXMania.ConfigIni.bIsSwappedGuitarBass)       // #24415 2011.2.27 yyagi Gt/Bsを入れ替えていたなら、Auto状態をリザルト画面終了後に元に戻す
+                                {
+                                    CDTXMania.ConfigIni.SwapGuitarBassInfos_AutoFlags(); // Auto入れ替え
+                                }
+
+                                DTX.tPausePlaybackForAllChips();
+                                DTX.OnDeactivate();
+                                rCurrentStage.OnDeactivate();
+                                if (!bCompactMode)
+                                {
+                                    Trace.TraceInformation("----------------------");
+                                    Trace.TraceInformation("■ SongSelection");
+                                    stageSongSelection.OnActivate();
+                                    rPreviousStage = rCurrentStage;
+                                    rCurrentStage = stageSongSelection;
+
+                                    foreach (STPlugin pg in this.listPlugins)
+                                    {
+                                        Directory.SetCurrentDirectory(pg.strプラグインフォルダ);
+                                        pg.plugin.OnChangeStage();
+                                        Directory.SetCurrentDirectory(CDTXMania.strEXEのあるフォルダ);
+                                    }
+
+                                    this.tRunGarbageCollector();
+                                }
+                                else
+                                {
+                                    base.Window.Close();
+                                }
+                            }
+                            //-----------------------------
+                            #endregion
+                            break;
+
+                        case CStage.EStage.ChangeSkin:
+                            #region [ *** ]
+                            //-----------------------------
+                            if (this.nUpdateAndDrawReturnValue != 0)
+                            {
+                                rCurrentStage.OnDeactivate();
+                                Trace.TraceInformation("----------------------");
+                                Trace.TraceInformation("■ SongSelection");
+                                stageSongSelection.OnActivate();
+                                rPreviousStage = rCurrentStage;
+                                rCurrentStage = stageSongSelection;
+                                this.tRunGarbageCollector();
+                            }
+                            //-----------------------------
+                            #endregion
+                            break;
+
+                        case CStage.EStage.End:
+                            #region [ *** ]
+                            //-----------------------------
+                            if (this.nUpdateAndDrawReturnValue != 0)
+                            {
+                                base.Exit();
+                            }
+                            //-----------------------------
+                            #endregion
+                            break;
+                    }
                 }
-            }
-            this.Device.EndScene();			// Present()は game.csのOnFrameEnd()に登録された、GraphicsDeviceManager.game_FrameEnd() 内で実行されるので不要
-            // (つまり、Present()は、Draw()完了後に実行される)
+                this.Device.EndScene();         // Present()は game.csのOnFrameEnd()に登録された、GraphicsDeviceManager.game_FrameEnd() 内で実行されるので不要
+                                                // (つまり、Present()は、Draw()完了後に実行される)
 #if !GPUFlushAfterPresent
-            actFlushGPU.OnUpdateAndDraw();		// Flush GPU	// EndScene()～Present()間 (つまりVSync前) でFlush実行
+                actFlushGPU.OnUpdateAndDraw();      // Flush GPU	// EndScene()～Present()間 (つまりVSync前) でFlush実行
 #endif
-            #region [ 全画面_ウインドウ切り替え ]
-            if (this.b次のタイミングで全画面_ウィンドウ切り替えを行う)
-            {
-                ConfigIni.bFullScreenMode = !ConfigIni.bFullScreenMode;
-                app.tSwitchFullScreenMode();
-                this.b次のタイミングで全画面_ウィンドウ切り替えを行う = false;
-            }
-            #endregion
-            #region [ 垂直基線同期切り替え ]
-            if (this.b次のタイミングで垂直帰線同期切り替えを行う)
-            {
-                bool bIsMaximized = this.Window.IsMaximized;											// #23510 2010.11.3 yyagi: to backup current window mode before changing VSyncWait
-                currentClientSize = this.Window.ClientSize;												// #23510 2010.11.3 yyagi: to backup current window size before changing VSyncWait
-                DeviceSettings currentSettings = app.GraphicsDeviceManager.CurrentSettings;
-                currentSettings.EnableVSync = ConfigIni.bVerticalSyncWait;
-                app.GraphicsDeviceManager.ChangeDevice(currentSettings);
-                this.b次のタイミングで垂直帰線同期切り替えを行う = false;
-                base.Window.ClientSize = new Size(currentClientSize.Width, currentClientSize.Height);	// #23510 2010.11.3 yyagi: to resume window size after changing VSyncWait
-                if (bIsMaximized)
+                #region [ 全画面_ウインドウ切り替え ]
+                if (this.b次のタイミングで全画面_ウィンドウ切り替えを行う)
                 {
-                    this.Window.WindowState = FormWindowState.Maximized;								// #23510 2010.11.3 yyagi: to resume window mode after changing VSyncWait
+                    ConfigIni.bFullScreenMode = !ConfigIni.bFullScreenMode;
+                    app.tSwitchFullScreenMode();
+                    this.b次のタイミングで全画面_ウィンドウ切り替えを行う = false;
                 }
+                #endregion
+                #region [ 垂直基線同期切り替え ]
+                if (this.b次のタイミングで垂直帰線同期切り替えを行う)
+                {
+                    bool bIsMaximized = this.Window.IsMaximized;                                            // #23510 2010.11.3 yyagi: to backup current window mode before changing VSyncWait
+                    currentClientSize = this.Window.ClientSize;                                             // #23510 2010.11.3 yyagi: to backup current window size before changing VSyncWait
+                    DeviceSettings currentSettings = app.GraphicsDeviceManager.CurrentSettings;
+                    currentSettings.EnableVSync = ConfigIni.bVerticalSyncWait;
+                    app.GraphicsDeviceManager.ChangeDevice(currentSettings);
+                    this.b次のタイミングで垂直帰線同期切り替えを行う = false;
+                    base.Window.ClientSize = new Size(currentClientSize.Width, currentClientSize.Height);   // #23510 2010.11.3 yyagi: to resume window size after changing VSyncWait
+                    if (bIsMaximized)
+                    {
+                        this.Window.WindowState = FormWindowState.Maximized;                                // #23510 2010.11.3 yyagi: to resume window mode after changing VSyncWait
+                    }
+                }
+                #endregion
             }
-            #endregion
         }
 
 

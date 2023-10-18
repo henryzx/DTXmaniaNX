@@ -168,7 +168,7 @@ namespace FDK
 			}
 			return null;
 		}
-		public void tPolling(bool bWindowがアクティブ中, bool bバッファ入力を使用する)  // tポーリング
+        public void tPolling(bool bWindowがアクティブ中, bool bバッファ入力を使用する)  // tポーリング
 		{
 			//				foreach( IInputDevice device in this.list入力デバイス )
 			for (int i = this.listInputDevices.Count - 1; i >= 0; i--)    // #24016 2011.1.6 yyagi: change not to use "foreach" to avoid InvalidOperation exception by Remove().
