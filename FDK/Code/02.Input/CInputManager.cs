@@ -303,7 +303,10 @@ namespace FDK
 
 		public static void dispatchInputHandler()
 		{
-			DispatchInputHandler(null, EventArgs.Empty);
+			if (DispatchInputHandler != null)
+			{
+                DispatchInputHandler(null, EventArgs.Empty);
+            }
 		}
     }
 }
