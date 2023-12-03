@@ -1,0 +1,170 @@
+
+DTXMania powered by YAMAHA Silent Session Drums
+Release: v1.4.0 20220220
+
+2023/12/03 13:52:55.904 [INFO] ----------------------
+2023/12/03 13:52:55.904 [INFO] ■ アプリケーションの初期化
+2023/12/03 13:52:55.904 [INFO] OS Version: Microsoft Windows NT 10.0.22631.0
+2023/12/03 13:52:55.904 [INFO] ProcessorCount: 12
+2023/12/03 13:52:55.904 [INFO] CLR Version: 4.0.30319.42000
+2023/12/03 13:52:55.904 [INFO] Start in normal mode。
+2023/12/03 13:52:56.108 [INFO] スキンの初期化を行います。
+2023/12/03 13:52:56.108 [INFO]     SkinPath入力: C:\Users\zx\github\DTXmaniaNX\Runtime\System\
+2023/12/03 13:52:56.108 [INFO]     SkinPath設定: C:\Users\zx\github\DTXmaniaNX\Runtime\System\
+2023/12/03 13:52:56.108 [INFO]     スキンの初期化を完了しました。
+2023/12/03 13:52:56.108 [INFO] タイマの初期化を行います。
+2023/12/03 13:52:56.113 [INFO]     タイマの初期化を完了しました。
+2023/12/03 13:52:56.113 [INFO] FPSカウンタの初期化を行います。
+2023/12/03 13:52:56.113 [INFO]     FPSカウンタを生成しました。
+2023/12/03 13:52:56.113 [INFO] 文字コンソールの初期化を行います。
+2023/12/03 13:52:56.113 [INFO]     文字コンソールを生成しました。
+2023/12/03 13:52:56.122 [INFO]     文字コンソールを活性化しました。
+2023/12/03 13:52:56.122 [INFO]     文字コンソールの初期化を完了しました。
+2023/12/03 13:52:56.122 [INFO] DirectInput, MIDI入力の初期化を行います。
+2023/12/03 13:52:56.248 [INFO]     Keyboard を生成しました。
+2023/12/03 13:52:56.255 [INFO]     Mouse を生成しました。
+2023/12/03 13:52:56.352 [INFO]     MIDI入力デバイス数: 0
+2023/12/03 13:52:56.353 [INFO]     DirectInput の初期化を完了しました。
+2023/12/03 13:52:56.353 [INFO] パッドの初期化を行います。
+2023/12/03 13:52:56.353 [INFO]     パッドの初期化を完了しました。
+2023/12/03 13:52:56.353 [INFO] サウンドデバイスの初期化を行います。
+2023/12/03 13:52:56.356 [INFO]     DirectSound の初期化を開始します。
+2023/12/03 13:52:56.401 [INFO]     DirectSound を初期化しました。(Priority)(FDKtimer)
+2023/12/03 13:52:56.403 [INFO]     Bus type of the default sound device = 
+2023/12/03 13:52:56.403 [INFO]     サウンドデバイスの初期化を完了しました。
+2023/12/03 13:52:56.403 [INFO] 曲リストの初期化を行います。
+2023/12/03 13:52:56.404 [INFO]     曲リストの初期化を完了しました。
+2023/12/03 13:52:56.435 [INFO] プラグインの検索と生成を行います。
+2023/12/03 13:52:56.436 [WARNING]     プラグインフォルダが存在しません。(C:\Users\zx\github\DTXmaniaNX\Runtime\Plugins\)
+2023/12/03 13:52:56.436 [INFO]     プラグインの検索と生成を完了しました。
+2023/12/03 13:52:56.436 [INFO] アプリケーションの初期化を完了しました。
+2023/12/03 13:52:56.436 [INFO] ----------------------
+2023/12/03 13:52:56.436 [INFO] ■ Startup
+2023/12/03 13:52:56.436 [INFO] 起動ステージを活性化します。
+2023/12/03 13:52:56.453 [INFO]     起動ステージの活性化を完了しました。
+2023/12/03 13:52:56.477 [INFO] 0) システムサウンドを構築します。
+2023/12/03 13:52:56.490 [INFO]     システムサウンドを読み込みました。(Sounds\Move.ogg)
+2023/12/03 13:52:56.495 [INFO]     システムサウンドを読み込みました。(Sounds\Decide.ogg)
+2023/12/03 13:52:56.498 [INFO]     システムサウンドを読み込みました。(Sounds\Change.ogg)
+2023/12/03 13:52:56.503 [INFO]     システムサウンドを読み込みました。(Sounds\Cancel.ogg)
+2023/12/03 13:52:56.517 [INFO]     システムサウンドを読み込みました。(Sounds\Audience.ogg)
+2023/12/03 13:52:56.532 [INFO]     システムサウンドを読み込みました。(Sounds\Game start.ogg)
+2023/12/03 13:52:56.543 [INFO]     システムサウンドを読み込みました。(Sounds\Full combo.ogg)
+2023/12/03 13:52:56.555 [INFO]     システムサウンドを読み込みました。(Sounds\Excellent.ogg)
+2023/12/03 13:52:56.565 [INFO]     システムサウンドを読み込みました。(Sounds\New Record.ogg)
+2023/12/03 13:52:56.565 [WARNING]     システムサウンドが存在しません。(Sounds\MusicDecide.ogg)
+2023/12/03 13:52:56.565 [WARNING]     システムサウンドが存在しません。(Sounds\Novice.ogg)
+2023/12/03 13:52:56.565 [WARNING]     システムサウンドが存在しません。(Sounds\Regular.ogg)
+2023/12/03 13:52:56.565 [WARNING]     システムサウンドが存在しません。(Sounds\Expert.ogg)
+2023/12/03 13:52:56.575 [INFO]     システムサウンドを読み込みました。(Sounds\Master.ogg)
+2023/12/03 13:52:56.576 [WARNING]     システムサウンドが存在しません。(Sounds\SelectMusic.ogg)
+2023/12/03 13:52:56.586 [INFO]     システムサウンドを読み込みました。(Sounds\Basic.ogg)
+2023/12/03 13:52:56.598 [INFO]     システムサウンドを読み込みました。(Sounds\Advanced.ogg)
+2023/12/03 13:52:56.609 [INFO]     システムサウンドを読み込みました。(Sounds\Extreme.ogg)
+2023/12/03 13:52:56.609 [INFO] 1) songlist.dbを読み込みます。
+2023/12/03 13:52:56.617 [INFO]     songlist.db の読み込みを完了しました。[8スコア]
+2023/12/03 13:52:56.617 [INFO] 2) songs.db を読み込みます。
+2023/12/03 13:52:56.622 [INFO]     songs.db の読み込みを完了しました。[8スコア]
+2023/12/03 13:52:56.622 [INFO] 起動所要時間: 00:00:00.1455667
+2023/12/03 13:52:56.624 [INFO] 起動ステージを非活性化します。
+2023/12/03 13:52:56.625 [INFO]     起動ステージの非活性化を完了しました。
+2023/12/03 13:52:56.625 [INFO] ----------------------
+2023/12/03 13:52:56.625 [INFO] ■ Title
+2023/12/03 13:52:56.626 [INFO] タイトルステージを活性化します。
+2023/12/03 13:52:56.645 [INFO]     タイトルステージの活性化を完了しました。
+2023/12/03 13:52:56.660 [INFO] ★曲データ検索スレッドを起動しました。
+2023/12/03 13:52:56.662 [INFO] enum2) 曲データを検索します。
+2023/12/03 13:52:56.662 [INFO]     検索パス: D:\drum\DTXFiles
+2023/12/03 13:52:56.672 [INFO]     曲データの検索を完了しました。[2曲8スコア]
+2023/12/03 13:52:56.672 [INFO] enum3) songs.db の情報を曲リストへ反映します。
+2023/12/03 13:52:56.674 [INFO]     曲リストへの反映を完了しました。[7/8スコア]
+2023/12/03 13:52:56.674 [INFO] 8, 7
+2023/12/03 13:52:56.674 [INFO] enum4) songs.db になかった曲データ[1スコア]の情報をファイルから読み込んで反映します。
+2023/12/03 13:52:56.720 [INFO]     曲データへの反映を完了しました。[1/1スコア]
+2023/12/03 13:52:56.720 [INFO] enum5) 曲リストへの後処理を適用します。
+2023/12/03 13:52:56.723 [INFO]     曲リストへの後処理を完了しました。
+2023/12/03 13:52:56.723 [INFO] enum6) 曲データの情報を songs.db へ出力します。
+2023/12/03 13:52:56.726 [INFO]     songs.db への出力を完了しました。[8スコア]
+2023/12/03 13:52:56.726 [INFO] enum7) 曲データの情報を songlist.db へ出力します。
+2023/12/03 13:52:56.729 [INFO]     songlist.db への出力を完了しました。[8スコア]
+2023/12/03 13:52:56.729 [INFO] 曲探索所要時間: 00:00:00.0673488
+2023/12/03 13:52:58.207 [INFO] タイトルステージを非活性化します。
+2023/12/03 13:52:58.207 [INFO]     タイトルステージの非活性化を完了しました。
+2023/12/03 13:52:58.208 [INFO] ----------------------
+2023/12/03 13:52:58.208 [INFO] ■ SongSelection
+2023/12/03 13:52:58.208 [INFO] 選曲ステージを活性化します。
+2023/12/03 13:52:58.232 [WARNING]     File does not exist. ()(C:\Users\zx\github\DTXmaniaNX\Runtime\System\Graphics\5_background.mp4)
+2023/12/03 13:52:58.396 [ERROR]     テクスチャファイルが見つかりませんでした。(C:\Users\zx\github\DTXmaniaNX\Runtime\System\Graphics\5_informatione.png)
+2023/12/03 13:52:58.439 [ERROR]     DrawPrivateFont()の入力不正。最小値のbitmapを返します。
+2023/12/03 13:52:58.441 [INFO]     選曲ステージの活性化を完了しました。
+2023/12/03 13:53:00.394 [INFO] プレビューサウンドを生成しました。(D:\drum\DTXFiles\VIOLET LINE\pre.ogg)
+2023/12/03 13:53:01.640 [INFO] 選曲ステージを非活性化します。
+2023/12/03 13:53:01.640 [INFO]     CActSelectBackgroundAVI: Stop()
+2023/12/03 13:53:01.645 [INFO]     選曲ステージの非活性化を完了しました。
+2023/12/03 13:53:01.646 [INFO] ----------------------
+2023/12/03 13:53:01.646 [INFO] ■ SongLoading
+2023/12/03 13:53:01.647 [INFO] 曲読み込みステージを活性化します。
+2023/12/03 13:53:01.693 [INFO]     曲読み込みステージの活性化を完了しました。
+2023/12/03 13:53:01.740 [INFO] ----曲情報-----------------
+2023/12/03 13:53:01.740 [INFO] TITLE: VIOLET LINE
+2023/12/03 13:53:01.740 [INFO] FILE: D:\drum\DTXFiles\VIOLET LINE\mstr.dtx
+2023/12/03 13:53:01.740 [INFO] ---------------------------
+2023/12/03 13:53:01.740 [INFO] DTX読込所要時間:           00:00:00.0094943
+2023/12/03 13:53:03.471 [INFO] WAV読込所要時間(  44):     00:00:01.7311110
+2023/12/03 13:53:03.503 [WARNING] File does not exist. ()(C:\Users\zx\github\DTXmaniaNX\Runtime\System\Graphics\7_Movie.mp4)
+2023/12/03 13:53:03.764 [ERROR] テクスチャファイルが見つかりませんでした。(C:\Users\zx\github\DTXmaniaNX\Runtime\System\Graphics\ScreenPlayDrums chip fire_RD.png)
+2023/12/03 13:53:03.809 [ERROR] テクスチャファイルが見つかりませんでした。(C:\Users\zx\github\DTXmaniaNX\Runtime\System\Graphics\ScreenPlayDrums lane flush ridecymbal.png)
+2023/12/03 13:53:03.812 [ERROR] テクスチャファイルが見つかりませんでした。(C:\Users\zx\github\DTXmaniaNX\Runtime\System\Graphics\ScreenPlayDrums lane flush ridecymbal reverse.png)
+2023/12/03 13:53:03.819 [ERROR] DrawPrivateFont()の入力不正。最小値のbitmapを返します。
+2023/12/03 13:53:04.002 [ERROR] テクスチャファイルが見つかりませんでした。(C:\Users\zx\github\DTXmaniaNX\Runtime\System\Graphics\\7_FullCombo.png)
+2023/12/03 13:53:04.002 [ERROR] テクスチャファイルが見つかりませんでした。(C:\Users\zx\github\DTXmaniaNX\Runtime\System\Graphics\\7_Excellent.png)
+2023/12/03 13:53:04.002 [ERROR] テクスチャファイルが見つかりませんでした。(C:\Users\zx\github\DTXmaniaNX\Runtime\System\Graphics\\7_Drums_black.png)
+2023/12/03 13:53:04.009 [INFO] WAV/譜面後処理時間(   1):  00:00:00.5379939
+2023/12/03 13:53:04.090 [ERROR] Cannot play back the file.  The format is not supported.
+2023/12/03 13:53:04.090 [ERROR] 動画の生成に失敗しました。()(D:\drum\DTXFiles\VIOLET LINE\bg.mp4)
+2023/12/03 13:53:04.090 [INFO] BMP/AVI読込所要時間(   1): 00:00:00.0788639
+2023/12/03 13:53:04.090 [INFO] 総読込時間:                00:00:02.3594990
+2023/12/03 13:53:07.109 [INFO] 曲読み込みステージを非活性化します。
+2023/12/03 13:53:07.112 [INFO]     曲読み込みステージの非活性化を完了しました。
+2023/12/03 13:53:07.112 [INFO] ----------------------
+2023/12/03 13:53:07.112 [INFO] ■ Playing（ドラム画面）
+2023/12/03 13:53:07.236 [INFO] REMOVE LOOP CSoundManager.rcPerformanceTimer.nCurrentTime=103, CDTXMania.Timer.nCurrentTime=103
+2023/12/03 13:53:07.674 [INFO] REMOVE LOOP CSoundManager.rcPerformanceTimer.nCurrentTime=546, CDTXMania.Timer.nCurrentTime=546
+2023/12/03 13:53:07.958 [INFO] REMOVE LOOP CSoundManager.rcPerformanceTimer.nCurrentTime=829, CDTXMania.Timer.nCurrentTime=829
+2023/12/03 13:53:08.391 [INFO] REMOVE LOOP CSoundManager.rcPerformanceTimer.nCurrentTime=1262, CDTXMania.Timer.nCurrentTime=1262
+2023/12/03 13:53:08.628 [INFO] REMOVE LOOP CSoundManager.rcPerformanceTimer.nCurrentTime=1498, CDTXMania.Timer.nCurrentTime=1498
+2023/12/03 13:53:08.874 [INFO] REMOVE LOOP CSoundManager.rcPerformanceTimer.nCurrentTime=1746, CDTXMania.Timer.nCurrentTime=1746
+2023/12/03 13:53:09.057 [INFO] REMOVE LOOP CSoundManager.rcPerformanceTimer.nCurrentTime=1929, CDTXMania.Timer.nCurrentTime=1929
+2023/12/03 13:53:09.291 [INFO] REMOVE LOOP CSoundManager.rcPerformanceTimer.nCurrentTime=2162, CDTXMania.Timer.nCurrentTime=2162
+2023/12/03 13:53:09.541 [INFO] REMOVE LOOP CSoundManager.rcPerformanceTimer.nCurrentTime=2412, CDTXMania.Timer.nCurrentTime=2412
+2023/12/03 13:53:09.757 [INFO] REMOVE LOOP CSoundManager.rcPerformanceTimer.nCurrentTime=2628, CDTXMania.Timer.nCurrentTime=2628
+2023/12/03 13:53:09.925 [INFO] REMOVE LOOP CSoundManager.rcPerformanceTimer.nCurrentTime=2796, CDTXMania.Timer.nCurrentTime=2796
+2023/12/03 13:53:10.158 [INFO] REMOVE LOOP CSoundManager.rcPerformanceTimer.nCurrentTime=3030, CDTXMania.Timer.nCurrentTime=3030
+2023/12/03 13:53:12.999 [INFO] ----------------------
+2023/12/03 13:53:12.999 [INFO] ■ アプリケーションの終了
+2023/12/03 13:53:12.999 [INFO] 曲検索actの終了処理を行います。
+2023/12/03 13:53:12.999 [INFO]     曲検索actの終了処理を完了しました。
+2023/12/03 13:53:12.999 [INFO] 現在のステージを終了します。
+2023/12/03 13:53:13.000 [INFO]     CActSelectBackgroundAVI: Stop()
+2023/12/03 13:53:13.015 [INFO]     現在のステージの終了処理を完了しました。
+2023/12/03 13:53:13.015 [INFO] 曲リストの終了処理を行います。
+2023/12/03 13:53:13.015 [INFO]     曲リストの終了処理を完了しました。
+2023/12/03 13:53:13.015 [INFO] スキンの終了処理を行います。
+2023/12/03 13:53:13.018 [INFO]     スキンの終了処理を完了しました。
+2023/12/03 13:53:13.018 [INFO] DirectSound の終了処理を行います。
+2023/12/03 13:53:13.035 [INFO]     DirectSound の終了処理を完了しました。
+2023/12/03 13:53:13.035 [INFO] パッドの終了処理を行います。
+2023/12/03 13:53:13.035 [INFO]     パッドの終了処理を完了しました。
+2023/12/03 13:53:13.035 [INFO] DirectInput, MIDI入力の終了処理を行います。
+2023/12/03 13:53:13.036 [INFO]     DirectInput, MIDI入力の終了処理を完了しました。
+2023/12/03 13:53:13.036 [INFO] 文字コンソールの終了処理を行います。
+2023/12/03 13:53:13.037 [INFO]     文字コンソールの終了処理を完了しました。
+2023/12/03 13:53:13.037 [INFO] FPSカウンタの終了処理を行います。
+2023/12/03 13:53:13.037 [INFO]     FPSカウンタの終了処理を完了しました。
+2023/12/03 13:53:13.037 [INFO] タイマの終了処理を行います。
+2023/12/03 13:53:13.037 [INFO]     タイマの終了処理を完了しました。
+2023/12/03 13:53:13.037 [INFO] Config.ini を出力します。
+2023/12/03 13:53:13.056 [INFO]     保存しました。(C:\Users\zx\github\DTXmaniaNX\Runtime\Config.ini)
+2023/12/03 13:53:13.057 [INFO] アプリケーションの終了処理を完了しました。
+
+遊んでくれてありがとう！

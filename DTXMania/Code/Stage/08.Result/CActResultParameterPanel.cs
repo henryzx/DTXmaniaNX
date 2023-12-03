@@ -590,8 +590,10 @@ namespace DTXMania
                     }
 
                     //Draw Progress Bars
-                    this.txCurrentProgressBar[j].tDraw2D(CDTXMania.app.Device, 256 + this.n本体X[j], 2 + this.n本体Y);
-                    this.txPreviousBestProgressBar[j].tDraw2D(CDTXMania.app.Device, 270 + this.n本体X[j], 2 + this.n本体Y);
+                    if (this.txCurrentProgressBar[j] != null)
+                        this.txCurrentProgressBar[j].tDraw2D(CDTXMania.app.Device, 256 + this.n本体X[j], 2 + this.n本体Y);
+                    if (this.txPreviousBestProgressBar[j] != null)
+                        this.txPreviousBestProgressBar[j].tDraw2D(CDTXMania.app.Device, 270 + this.n本体X[j], 2 + this.n本体Y);
 
                     string strScore = string.Format("{0,7:######0}", CDTXMania.stageResult.stPerformanceEntry[j].nスコア);
                     for (int i = 0; i < 7; i++)

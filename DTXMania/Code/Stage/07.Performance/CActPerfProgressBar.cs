@@ -495,7 +495,15 @@ namespace DTXMania
 		{
 			if (judge == EJudgement.Perfect || judge == EJudgement.Great || judge == EJudgement.Good)
 			{
-				listProgressSection[(int)inst][nTime * nSectionIntervalCount / nLastChipTime].nHitCount++;
+                try
+                {
+                    listProgressSection[(int)inst][nTime * nSectionIntervalCount / nLastChipTime].nHitCount++;
+                } catch (Exception e)
+                {
+                    Debug.WriteLine("Error during Hit, attempting to update section at " + ((int)inst) + "," + (nTime * nSectionIntervalCount / nLastChipTime) + ". " + e.Message);
+                    // ignore
+                }
+				
 			}
 		}
 
