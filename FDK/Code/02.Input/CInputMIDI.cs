@@ -39,7 +39,7 @@ namespace FDK
 
 // Trace.TraceInformation( "MIDIevent={0:X2} para1={1:X2} para2={2:X2}", nMIDIevent, nPara1, nPara2 );
 			
-				if( ( nMIDIevent == 0x90 ) && ( nPara2 != 0 ) )
+				if( ( nMIDIevent == 0x90 ) && ( nPara2 != 0 ) && nPara2 > 10 )
 				{
 					STInputEvent item = new STInputEvent();
 					item.nKey = nPara1;
